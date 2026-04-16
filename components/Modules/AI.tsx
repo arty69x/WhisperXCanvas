@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, Bot, Loader2 } from 'lucide-react';
+import { Send, Sparkles, User, Bot, Loader2, AlertCircle } from 'lucide-react';
+import { GoogleGenAI } from '@google/genai';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -11,6 +12,7 @@ export default function AI({ activeModule }: { activeModule: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,27 +26,55 @@ export default function AI({ activeModule }: { activeModule: string }) {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
+    setError(null);
     const userMsg: Message = { role: 'user', text: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          prompt: input,
-          history: messages.map(m => ({ role: m.role, parts: [{ text: m.text }] }))
-        })
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('NEXT_PUBLIC_GEMINI_API_KEY is not configured in environment variables.');
+      }
+
+      const genAI = new GoogleGenAI(apiKey);
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-2.0-flash',
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 40,
+        }
       });
 
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      const chat = model.startChat({
+        history: [
+          {
+            role: 'user',
+            parts: [{ text: "You are WhisperXStudio AI, a professional assistant for a high-fidelity visualization platform. Help the user with their workspace, archive, and forge tasks." }],
+          },
+          {
+            role: 'model',
+            parts: [{ text: "Acknowledged. I am synchronized and ready to assist with your workspace operations." }],
+          },
+          ...messages.map(m => ({
+            role: m.role,
+            parts: [{ text: m.text }]
+          }))
+        ],
+      });
 
-      setMessages(prev => [...prev, { role: 'model', text: data.text }]);
-    } catch (error: any) {
-      setMessages(prev => [...prev, { role: 'model', text: `Error: ${error.message}` }]);
+      const result = await chat.sendMessage(input);
+      const response = await result.response;
+      const text = response.text();
+
+      setMessages(prev => [...prev, { role: 'model', text }]);
+    } catch (err: any) {
+      console.error('AI Interaction Error:', err);
+      const errorMsg = err.message || 'An unexpected error occurred.';
+      setError(errorMsg);
+      setMessages(prev => [...prev, { role: 'model', text: `ERROR: ${errorMsg}` }]);
     } finally {
       setIsLoading(false);
     }
@@ -59,12 +89,21 @@ export default function AI({ activeModule }: { activeModule: string }) {
           </div>
           <div>
             <h2 className="text-sm font-black uppercase tracking-widest text-glow">AI Service Layer</h2>
-            <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Gemini 3 Flash • Connected</p>
+            <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Gemini 2.0 Flash • Connected</p>
           </div>
         </div>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative z-10">
+        {!process.env.NEXT_PUBLIC_GEMINI_API_KEY && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400">
+            <AlertCircle size={18} />
+            <p className="text-[10px] font-black uppercase tracking-widest">
+              Critical: GEMINI_API_KEY is not configured in the Secrets panel.
+            </p>
+          </div>
+        )}
+
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
             <Sparkles size={48} className="text-white/20" />
@@ -119,7 +158,7 @@ export default function AI({ activeModule }: { activeModule: string }) {
           />
           <button 
             onClick={handleSend}
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input.trim() || !process.env.NEXT_PUBLIC_GEMINI_API_KEY}
             className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:bg-white/90 transition-all disabled:opacity-50 active:scale-95 shadow-lg"
           >
             <Send size={18} />

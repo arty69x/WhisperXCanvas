@@ -1,6 +1,6 @@
 {
-  "name": "WhisperXStudio",
-  "description": "Full interactive visualization platform and shared editable canvas workspace.",
+  "name": "VisionLock Studio",
+  "description": "Pixel-perfect screenshot reconstruction, document intelligence, and premium Tailwind UI generator.",
   "requestFramePermissions": [],
   "majorCapabilities": ["canvas", "ai", "visualization"]
 }

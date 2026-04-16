@@ -1,66 +1,96 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
+import { useAppStore } from '@/lib/store';
 import { CanvasEntity } from '@/types/canvas';
 import { cn } from '@/lib/utils';
-import { Maximize2, Minimize2, Pin, Lock, Unlock, Trash2, ExternalLink, Focus } from 'lucide-react';
+import { 
+  Maximize, 
+  Minus, 
+  Plus, 
+  RotateCcw, 
+  Search, 
+  Monitor,
+  Lock,
+  MessageSquare,
+  FileText,
+  FileJson,
+  Layout,
+  Sparkles,
+  ExternalLink,
+  ChevronRight,
+  Menu,
+  MoreVertical
+} from 'lucide-react';
 
-interface CanvasEngineProps {
-  entities: CanvasEntity[];
-  zoom: number;
-  pan: { x: number; y: number };
-  selectedEntityIds: string[];
-  onEntityUpdate: (id: string, updates: Partial<CanvasEntity>) => void;
-  onEntitySelect: (id: string, multi: boolean) => void;
-  onEntityRemove: (id: string) => void;
-  onPanChange: (pan: { x: number; y: number }) => void;
-  onZoomChange: (zoom: number) => void;
-  onClearSelection: () => void;
-  onFitToView: () => void;
-}
+export default function CanvasEngine() {
+  const entities = useAppStore((state) => state.entities);
+  const zoom = useAppStore((state) => state.zoom);
+  const pan = useAppStore((state) => state.pan);
+  const selectedEntityIds = useAppStore((state) => state.selectedEntityIds);
+  
+  const updateEntity = useAppStore((state) => state.updateEntity);
+  const selectEntity = useAppStore((state) => state.selectEntity);
+  const removeEntity = useAppStore((state) => state.removeEntity);
+  const setPan = useAppStore((state) => state.setPan);
+  const setZoom = useAppStore((state) => state.setZoom);
+  const clearSelection = useAppStore((state) => state.clearSelection);
+  const fitToView = useAppStore((state) => state.fitToView);
 
-export default function CanvasEngine({
-  entities,
-  zoom,
-  pan,
-  selectedEntityIds,
-  onEntityUpdate,
-  onEntitySelect,
-  onEntityRemove,
-  onPanChange,
-  onZoomChange,
-  onClearSelection,
-  onFitToView
-}: CanvasEngineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [marquee, setMarquee] = useState<{ start: { x: number, y: number }, end: { x: number, y: number } } | null>(null);
+  
+  // Convert screen coordinates to canvas coordinates
+  const screenToCanvas = useCallback((clientX: number, clientY: number) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left - pan.x) / zoom,
+      y: (clientY - rect.top - pan.y) / zoom
+    };
+  }, [pan, zoom]);
 
+  // Handle Pan & Zoom
   const handleWheel = (e: React.WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
-      const delta = -e.deltaY * 0.001;
-      onZoomChange(zoom + delta);
+      // Zoom
+      const delta = -e.deltaY * 0.001; // Slower zoom
+      const newZoom = Math.min(Math.max(zoom + delta, 0.1), 5);
+      
+      // Zoom relative to mouse position
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        const canvasMouseBefore = {
+          x: (mouseX - pan.x) / zoom,
+          y: (mouseY - pan.y) / zoom
+        };
+        
+        const newPan = {
+          x: mouseX - canvasMouseBefore.x * newZoom,
+          y: mouseY - canvasMouseBefore.y * newZoom
+        };
+        
+        setZoom(newZoom);
+        setPan(newPan);
+      }
     } else {
-      onPanChange({
+      // Pan
+      setPan({
         x: pan.x - e.deltaX,
         y: pan.y - e.deltaY
       });
     }
   };
 
-  const screenToCanvas = (x: number, y: number) => {
-    if (!containerRef.current) return { x: 0, y: 0 };
-    const rect = containerRef.current.getBoundingClientRect();
-    return {
-      x: (x - rect.left - pan.x) / zoom,
-      y: (y - rect.top - pan.y) / zoom
-    };
-  };
-
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 1 || (e.button === 0 && e.shiftKey && !e.target)) {
+    if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
       setIsPanning(true);
     } else if (e.target === containerRef.current) {
-      onClearSelection();
+      clearSelection();
       const pos = screenToCanvas(e.clientX, e.clientY);
       setMarquee({ start: pos, end: pos });
     }
@@ -68,7 +98,7 @@ export default function CanvasEngine({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isPanning) {
-      onPanChange({
+      setPan({
         x: pan.x + e.movementX,
         y: pan.y + e.movementY
       });
@@ -78,7 +108,7 @@ export default function CanvasEngine({
     }
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleMouseUp = () => {
     if (marquee) {
       const x1 = Math.min(marquee.start.x, marquee.end.x);
       const y1 = Math.min(marquee.start.y, marquee.end.y);
@@ -93,7 +123,7 @@ export default function CanvasEngine({
           entity.y + entity.height <= y2;
         
         if (inBounds) {
-          onEntitySelect(entity.id, true);
+          selectEntity(entity.id, true);
         }
       });
       setMarquee(null);
@@ -101,27 +131,48 @@ export default function CanvasEngine({
     setIsPanning(false);
   };
 
+  // Keyboard events
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '')) {
+        selectedEntityIds.forEach(id => removeEntity(id));
+      }
+      if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        entities.forEach(entity => selectEntity(entity.id, true));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedEntityIds, removeEntity, entities, selectEntity]);
+
   return (
     <div 
       ref={containerRef}
-      className="w-full h-full relative overflow-hidden bg-[#05070a] cursor-grab active:cursor-grabbing select-none"
+      className={cn(
+        "w-full h-full relative overflow-hidden bg-transparent select-none transition-colors",
+        isPanning ? "cursor-grabbing" : "cursor-crosshair"
+      )}
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={(e) => handleMouseUp(e)}
+      onMouseLeave={handleMouseUp}
     >
-      {/* Grid Background */}
+      {/* Grid Pattern */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{
-          backgroundImage: `radial-gradient(circle, #ffffff 1px, transparent 1px)`,
-          backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
+          backgroundImage: `
+            linear-gradient(to right, #ffffff 1px, transparent 1px),
+            linear-gradient(to bottom, #ffffff 1px, transparent 1px)
+          `,
+          backgroundSize: `${40 * zoom}px ${40 * zoom}px`,
           backgroundPosition: `${pan.x}px ${pan.y}px`
         }}
       />
-
-      {/* Canvas Content */}
+      
+      {/* Entities Layer */}
       <div 
         className="absolute inset-0 origin-top-left"
         style={{
@@ -134,18 +185,18 @@ export default function CanvasEngine({
               key={entity.id}
               entity={entity}
               isSelected={selectedEntityIds.includes(entity.id)}
-              onSelect={(multi) => onEntitySelect(entity.id, multi)}
-              onUpdate={(updates) => onEntityUpdate(entity.id, updates)}
-              onRemove={() => onEntityRemove(entity.id)}
+              onSelect={(multi) => selectEntity(entity.id, multi)}
+              onUpdate={(updates) => updateEntity(entity.id, updates)}
+              onRemove={() => removeEntity(entity.id)}
               zoom={zoom}
             />
           ))}
         </AnimatePresence>
 
-        {/* Selection Marquee */}
+        {/* Marquee Selection Box */}
         {marquee && (
           <div 
-            className="absolute border border-blue-500/50 bg-blue-500/5 pointer-events-none rounded-sm"
+            className="absolute border border-white/20 bg-white/5 pointer-events-none rounded-sm shadow-[0_0_10px_rgba(255,255,255,0.05)]"
             style={{
               left: Math.min(marquee.start.x, marquee.end.x),
               top: Math.min(marquee.start.y, marquee.end.y),
@@ -156,27 +207,37 @@ export default function CanvasEngine({
         )}
       </div>
 
-      {/* Controls Overlay */}
-      <div className="absolute bottom-6 left-6 flex items-center gap-2 glass-panel p-1 rounded-xl z-30">
-        <button onClick={() => onZoomChange(zoom - 0.1)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-all active:scale-90">-</button>
-        <span className="text-[10px] font-black w-12 text-center text-white/60 tracking-tighter">{Math.round(zoom * 100)}%</span>
-        <button onClick={() => onZoomChange(zoom + 0.1)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-all active:scale-90">+</button>
-        <div className="w-px h-4 bg-white/10 mx-1" />
-        <button 
-          onClick={onFitToView} 
-          className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-all active:scale-90"
-          title="Fit to View"
-        >
-          <Focus size={14} />
+      {/* Control Overlay */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-20">
+        <button onClick={() => setZoom(Math.max(zoom - 0.1, 0.1))} className="p-2 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all">
+          <Minus size={14} />
+        </button>
+        <div className="px-3 border-x border-white/5 text-[10px] font-black uppercase tracking-widest text-white/60 min-w-[60px] text-center">
+          {Math.round(zoom * 100)}%
+        </div>
+        <button onClick={() => setZoom(Math.min(zoom + 0.1, 5))} className="p-2 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all">
+          <Plus size={14} />
         </button>
         <div className="w-px h-4 bg-white/10 mx-1" />
-        <button onClick={() => { onPanChange({ x: 0, y: 0 }); onZoomChange(1); }} className="text-[10px] px-3 uppercase font-black tracking-widest text-white/40 hover:text-white transition-all active:scale-95">Reset</button>
+        <button onClick={() => fitToView(window.innerWidth - 400, window.innerHeight, 100)} className="p-2 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all" title="Fit to View">
+          <Monitor size={14} />
+        </button>
+        <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} className="p-2 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all" title="Reset View">
+          <RotateCcw size={14} />
+        </button>
       </div>
     </div>
   );
 }
 
-function EntityCard({ entity, isSelected, onSelect, onUpdate, onRemove, zoom }: { 
+function EntityCard({ 
+  entity, 
+  isSelected, 
+  onSelect, 
+  onUpdate, 
+  onRemove,
+  zoom 
+}: { 
   entity: CanvasEntity, 
   isSelected: boolean, 
   onSelect: (multi: boolean) => void,
@@ -184,7 +245,22 @@ function EntityCard({ entity, isSelected, onSelect, onUpdate, onRemove, zoom }: 
   onRemove: () => void,
   zoom: number
 }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isResizing, setIsResizing] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (entity.locked) return;
+    e.stopPropagation();
+    onSelect(e.shiftKey || e.metaKey);
+    setIsDragging(true);
+    
+    // Zoom-aware drag offset
+    setDragOffset({
+      x: e.clientX / zoom - entity.x,
+      y: e.clientY / zoom - entity.y
+    });
+  };
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -192,156 +268,240 @@ function EntityCard({ entity, isSelected, onSelect, onUpdate, onRemove, zoom }: 
   };
 
   useEffect(() => {
-    if (!isResizing) return;
-
     const handleMouseMove = (e: MouseEvent) => {
-      onUpdate({
-        width: Math.max(100, entity.width + e.movementX / zoom),
-        height: Math.max(100, entity.height + e.movementY / zoom)
-      });
+      if (isDragging) {
+        onUpdate({
+          x: e.clientX / zoom - dragOffset.x,
+          y: e.clientY / zoom - dragOffset.y
+        });
+      } else if (isResizing) {
+        onUpdate({
+          width: Math.max(100, e.clientX / zoom - entity.x),
+          height: Math.max(100, e.clientY / zoom - entity.y)
+        });
+      }
     };
 
-    const handleMouseUp = () => setIsResizing(false);
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+    };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    if (isDragging || isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isResizing, entity.width, entity.height, zoom]);
+  }, [isDragging, isResizing, dragOffset, entity, onUpdate, zoom]);
 
   return (
     <motion.div
       layoutId={entity.id}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ 
-        opacity: 1, 
-        scale: 1,
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
         x: entity.x,
         y: entity.y,
         width: entity.width,
         height: entity.height,
         zIndex: entity.zIndex,
       }}
-      drag={!entity.locked}
-      dragMomentum={false}
-      onDragEnd={(_, info) => {
-        onUpdate({ x: entity.x + info.offset.x, y: entity.y + info.offset.y });
-      }}
-      onMouseDown={(e) => {
-        e.stopPropagation();
-        onSelect(e.shiftKey || e.metaKey);
-      }}
       className={cn(
-        "absolute glass-panel rounded-2xl overflow-hidden flex flex-col group transition-all",
-        isSelected ? "ring-2 ring-white/40 shadow-[0_0_30px_rgba(255,255,255,0.1)]" : "hover:border-white/20",
-        entity.locked && "cursor-default"
+        "group bg-black/40 backdrop-blur-2xl border transition-all duration-300 rounded-[2rem] overflow-hidden flex flex-col shadow-2xl",
+        isSelected ? "border-white/40 ring-1 ring-white/20 shadow-[0_0_40px_rgba(255,255,255,0.1)]" : "border-white/10 hover:border-white/20 hover:bg-black/60",
+        entity.locked && "opacity-80"
       )}
+      onMouseDown={handleMouseDown}
     >
       {/* Header */}
-      <div className={cn(
-        "p-3 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-md",
-        !entity.locked ? "cursor-move" : "cursor-default"
-      )}>
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className={cn("w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]", isSelected ? "text-white bg-white" : "text-white/20 bg-white/20")} />
-          <span className="text-[10px] font-black truncate uppercase tracking-widest text-white/80 text-glow">{entity.title}</span>
+      <div className="h-14 px-6 flex items-center justify-between bg-white/[0.03] border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white transition-colors">
+            {renderEntityIcon(entity.type)}
+          </div>
+          <div>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/60 truncate max-w-[150px]">{entity.title}</h3>
+            <p className="text-[8px] font-bold text-white/20 uppercase tracking-tighter">{entity.type}</p>
+          </div>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !entity.locked }); }} className={cn("p-1 rounded-md hover:bg-white/10 transition-colors", entity.locked && "text-blue-400")}>
-            {entity.locked ? <Lock size={12} /> : <Unlock size={12} />}
+          {entity.locked && <Lock size={12} className="text-white/40 mr-2" />}
+          <button className="p-1.5 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-all">
+            <ExternalLink size={12} />
           </button>
-          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="p-1 rounded-md hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors">
-            <Trash2 size={12} />
+          <button className="p-1.5 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-all">
+            <MoreVertical size={12} />
           </button>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-hidden p-4 relative bg-black/20">
-        {renderEntityContent(entity)}
-      </div>
-
-      {/* Footer / Meta */}
-      <div className="px-3 py-2 border-t border-white/5 bg-white/5 flex items-center justify-between">
-        <span className="text-[9px] uppercase font-black tracking-widest text-white/20">{entity.type}</span>
-        <div className="flex items-center gap-2">
-           <button className="text-white/20 hover:text-white transition-colors">
-             <ExternalLink size={10} />
-           </button>
-        </div>
+      {/* Content */}
+      <div className="flex-1 p-6 overflow-hidden relative">
+        <EntityContent entity={entity} />
       </div>
 
       {/* Resize Handle */}
       {!entity.locked && (
         <div 
+          className="absolute bottom-2 right-2 w-4 h-4 cursor-nwse-resize flex items-center justify-center text-white/10 hover:text-white transition-colors"
           onMouseDown={handleResizeStart}
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize flex items-center justify-center group/resize"
         >
-          <div className="w-1.5 h-1.5 bg-white/10 rounded-full group-hover/resize:bg-white transition-colors" />
+          <div className="w-1.5 h-1.5 bg-current rounded-full" />
         </div>
+      )}
+      
+      {/* Selection Border */}
+      {isSelected && (
+        <motion.div 
+          layoutId={`border-${entity.id}`}
+          className="absolute inset-0 border-2 border-white/40 rounded-[2rem] pointer-events-none"
+          initial={false}
+        />
       )}
     </motion.div>
   );
 }
 
-function renderEntityContent(entity: CanvasEntity) {
+function renderEntityIcon(type: EntityType) {
+  switch (type) {
+    case 'ai-chat-panel': return <Sparkles size={14} />;
+    case 'summary-panel': return <FileText size={14} />;
+    case 'doc': return <FileJson size={14} />;
+    default: return <Layout size={14} />;
+  }
+}
+
+function EntityContent({ entity }: { entity: CanvasEntity }) {
+  const vault = useAppStore((state) => state.vault);
+  const record = vault.find(r => r.id === entity.payload?.recordId);
+
+  if (record) {
+    switch (entity.type) {
+      case 'media-preview':
+        return (
+          <div className="w-full h-full flex items-center justify-center p-2">
+            {record.base64 ? (
+              <div className="relative w-full h-full">
+                <Image 
+                  src={record.base64} 
+                  alt={record.name}
+                  fill
+                  className="object-contain rounded-2xl shadow-2xl" 
+                  unoptimized
+                  onDragStart={(e) => e.preventDefault()}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 opacity-20">
+                <Layout size={32} />
+                <p className="text-[10px] uppercase font-black tracking-widest">Image Unavailable</p>
+              </div>
+            )}
+          </div>
+        );
+      case 'code-preview':
+      case 'markdown-preview':
+        return (
+          <div className="h-full overflow-auto scrollbar-hide font-mono text-[9px] text-white/50 p-4 whitespace-pre-wrap bg-black/20 rounded-2xl border border-white/5 selection:bg-blue-500/20">
+            {record.text || "Empty content"}
+          </div>
+        );
+      case 'pdf-preview':
+        return (
+          <div className="w-full h-full rounded-2xl overflow-hidden border border-white/5 bg-black/40">
+            <iframe 
+              src={record.objectUrl} 
+              className="w-full h-full border-none" 
+              title={record.name}
+            />
+          </div>
+        );
+      case 'archive-record':
+        return (
+          <div className="h-full flex flex-col items-center justify-center space-y-4 opacity-40">
+             <div className="p-6 bg-white/5 rounded-full border border-white/5 shadow-inner">
+               <RotateCcw size={48} className="text-white/40" />
+             </div>
+             <div className="text-center">
+               <p className="text-xs font-black uppercase tracking-widest">{record.ext} ARCHIVE</p>
+               <p className="text-[10px] font-bold text-white/20">Contents encrypted or compressed</p>
+             </div>
+          </div>
+        );
+      default:
+        break;
+    }
+  }
+
   switch (entity.type) {
     case 'ai-chat-panel':
       return (
-        <div className="space-y-3">
-          <div className="p-2 rounded bg-white/5 text-[10px] text-white/60">How can I help you today?</div>
-          <div className="flex gap-2">
-            <div className="flex-1 h-8 bg-white/5 rounded border border-white/10" />
-            <div className="w-8 h-8 bg-white rounded" />
+        <div className="h-full flex flex-col">
+          <div className="flex-1 space-y-3 overflow-y-auto scrollbar-hide pr-2">
+            {[
+              { role: 'user', text: "Analyze records in Forge Matrix." },
+              { role: 'ai', text: "Scanning records... Detected 4 normalized assets. Optimization targets identified in 03.pdf." }
+            ].map((msg, i) => (
+              <div key={i} className={cn(
+                "p-3 rounded-2xl text-[10px] leading-relaxed max-w-[85%]",
+                msg.role === 'ai' ? "bg-white/10 text-white/80 self-start" : "bg-blue-500/10 text-blue-400 self-end ml-auto border border-blue-500/10"
+              )}>
+                {msg.text}
+              </div>
+            ))}
           </div>
-        </div>
-      );
-    case 'archive-record':
-      return (
-        <div className="space-y-2">
-          <div className="h-2 w-3/4 bg-white/10 rounded" />
-          <div className="h-2 w-1/2 bg-white/5 rounded" />
-          <div className="h-2 w-2/3 bg-white/5 rounded" />
+          <div className="pt-4 mt-auto">
+            <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/5 rounded-xl">
+              <input 
+                type="text" 
+                placeholder="Message AI Assistant..." 
+                className="bg-transparent border-none text-[10px] flex-1 outline-none text-white/60 placeholder:text-white/20" 
+              />
+              <button className="p-1.5 bg-white text-black rounded-lg hover:bg-white/90 transition-colors"><ChevronRight size={12} /></button>
+            </div>
+          </div>
         </div>
       );
     case 'summary-panel':
       return (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-white/40 uppercase">Health</span>
-            <span className="text-[10px] font-bold text-green-400">92%</span>
+        <div className="grid grid-cols-2 gap-3 h-full content-start">
+          {[
+            { label: 'Active Tasks', val: '24', color: 'text-blue-400' },
+            { label: 'System Load', val: '42%', color: 'text-purple-400' },
+            { label: 'Vault Items', val: vault.length.toString(), color: 'text-green-400' },
+            { label: 'Forge Matrix', val: 'Optimal', color: 'text-yellow-400' },
+          ].map(stat => (
+            <div key={stat.label} className="p-4 bg-white/5 border border-white/5 rounded-[1.5rem] space-y-1 hover:bg-white/10 transition-colors cursor-default">
+              <p className="text-[8px] font-black uppercase text-white/20 tracking-widest">{stat.label}</p>
+              <p className={cn("text-lg font-black tracking-tighter", stat.color)}>{stat.val}</p>
+            </div>
+          ))}
+          <div className="col-span-2 p-4 bg-white/5 border border-white/5 rounded-[1.5rem] mt-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Recent Activity</span>
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+            </div>
+            <div className="space-y-2">
+               {[1, 2].map(i => (
+                 <div key={i} className="flex items-center gap-3 text-[9px] text-white/40">
+                   <div className="w-1 h-4 bg-white/5 rounded-full" />
+                   <p className="truncate">Normalization complete for block_0{i}</p>
+                 </div>
+               ))}
+            </div>
           </div>
-          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full w-[92%] bg-green-400" />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="h-12 bg-white/5 rounded" />
-            <div className="h-12 bg-white/5 rounded" />
-          </div>
-        </div>
-      );
-    case 'doc':
-      return (
-        <div className="space-y-2">
-          <div className="h-3 w-full bg-white/10 rounded" />
-          <div className="h-2 w-full bg-white/5 rounded" />
-          <div className="h-2 w-full bg-white/5 rounded" />
-          <div className="h-2 w-2/3 bg-white/5 rounded" />
-        </div>
-      );
-    case 'slide':
-      return (
-        <div className="w-full h-full bg-[#141414] border border-white/5 rounded flex items-center justify-center">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/20 italic">Slide Preview</span>
         </div>
       );
     default:
       return (
-        <div className="flex items-center justify-center h-full text-white/10 italic text-xs">
-          No preview available
+        <div className="flex flex-col items-center justify-center h-full text-center space-y-3 opacity-10">
+          <Layout size={32} />
+          <p className="text-[10px] font-black uppercase tracking-widest">No Content Interface</p>
         </div>
       );
   }

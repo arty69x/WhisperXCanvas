@@ -1,12 +1,11 @@
 import React from 'react';
-import { CanvasEntity } from '@/types/canvas';
 import { cn } from '@/lib/utils';
+import { useAppStore } from '@/lib/store';
 import { 
   Settings, 
   Trash2, 
   Copy, 
   Lock, 
-  Unlock, 
   ChevronDown, 
   Type, 
   Move, 
@@ -14,13 +13,14 @@ import {
   Layers
 } from 'lucide-react';
 
-interface InspectorProps {
-  selectedEntities: CanvasEntity[];
-  onUpdate: (id: string, updates: Partial<CanvasEntity>) => void;
-  onRemove: (id: string) => void;
-}
+export default function Inspector() {
+  const entities = useAppStore((state) => state.entities);
+  const selectedEntityIds = useAppStore((state) => state.selectedEntityIds);
+  const updateEntity = useAppStore((state) => state.updateEntity);
+  const removeEntity = useAppStore((state) => state.removeEntity);
 
-export default function Inspector({ selectedEntities, onUpdate, onRemove }: InspectorProps) {
+  const selectedEntities = entities.filter(e => selectedEntityIds.includes(e.id));
+
   if (selectedEntities.length === 0) {
     return (
       <div className="w-80 border-l border-white/10 bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center space-y-4 z-20">
@@ -61,7 +61,7 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
                 <input 
                   type="text" 
                   value={primary.title}
-                  onChange={(e) => onUpdate(primary.id, { title: e.target.value })}
+                  onChange={(e) => updateEntity(primary.id, { title: e.target.value })}
                   className="w-full glass-input rounded-xl px-3 py-2 text-xs"
                 />
               </div>
@@ -90,22 +90,22 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
             <TransformInput 
               label="X" 
               value={isMulti ? '-' : Math.round(primary.x)} 
-              onChange={(val) => !isMulti && onUpdate(primary.id, { x: parseInt(val) })}
+              onChange={(val) => !isMulti && updateEntity(primary.id, { x: parseInt(val) })}
             />
             <TransformInput 
               label="Y" 
               value={isMulti ? '-' : Math.round(primary.y)} 
-              onChange={(val) => !isMulti && onUpdate(primary.id, { y: parseInt(val) })}
+              onChange={(val) => !isMulti && updateEntity(primary.id, { y: parseInt(val) })}
             />
             <TransformInput 
               label="Width" 
               value={isMulti ? '-' : Math.round(primary.width)} 
-              onChange={(val) => !isMulti && onUpdate(primary.id, { width: parseInt(val) })}
+              onChange={(val) => !isMulti && updateEntity(primary.id, { width: parseInt(val) })}
             />
             <TransformInput 
               label="Height" 
               value={isMulti ? '-' : Math.round(primary.height)} 
-              onChange={(val) => !isMulti && onUpdate(primary.id, { height: parseInt(val) })}
+              onChange={(val) => !isMulti && updateEntity(primary.id, { height: parseInt(val) })}
             />
           </div>
         </section>
@@ -120,7 +120,7 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Locked</span>
               </div>
               <button 
-                onClick={() => selectedEntities.forEach(e => onUpdate(e.id, { locked: !e.locked }))}
+                onClick={() => selectedEntities.forEach(e => updateEntity(e.id, { locked: !e.locked }))}
                 className={cn(
                   "w-8 h-4 rounded-full relative transition-all",
                   primary.locked ? "bg-white shadow-[0_0_10px_white]" : "bg-white/10"
@@ -150,7 +150,7 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
               <Copy size={12} /> Duplicate
             </button>
             <button 
-              onClick={() => selectedEntities.forEach(e => onRemove(e.id))}
+              onClick={() => selectedEntities.forEach(e => removeEntity(e.id))}
               className="flex items-center justify-center gap-2 p-3 bg-red-500/10 rounded-2xl border border-red-500/20 hover:bg-red-500/20 transition-all text-[9px] font-black uppercase tracking-widest text-red-400 active:scale-95"
             >
               <Trash2 size={12} /> Delete

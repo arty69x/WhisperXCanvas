@@ -2,12 +2,39 @@ import React from 'react';
 import CanvasEngine from '@/components/Canvas/CanvasEngine';
 import { useWorkspaceStore } from '@/lib/store';
 import Inspector from '@/components/Canvas/Inspector';
-import { Plus, Layout, Save, Trash2, FileText, FileJson } from 'lucide-react';
+import { Plus, Layout, Save, Trash2, FileText, FileJson, Upload, Database } from 'lucide-react';
+import { processFile } from '@/lib/ingestion';
 
 export default function Workspace({ activeModule }: { activeModule: string }) {
   const store = useWorkspaceStore();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   if (activeModule !== 'workspace') return null;
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      const record = await processFile(file);
+      store.addRecordToVault(record);
+      
+      // Auto-spawn on canvas
+      store.addEntity({
+        type: record.renderType,
+        title: record.name,
+        subtitle: record.kind.toUpperCase(),
+        x: Math.random() * 300 + 100,
+        y: Math.random() * 300 + 100,
+        width: 400,
+        height: 500,
+        payload: { recordId: record.id }
+      });
+    }
+    
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   return (
     <div className="w-full h-full flex flex-col bg-transparent">
@@ -59,6 +86,28 @@ export default function Workspace({ activeModule }: { activeModule: string }) {
               <FileJson size={14} />
             </button>
             <div className="w-px h-3 bg-white/10 mx-1" />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="p-1.5 hover:bg-blue-500/20 rounded-md text-blue-400/60 hover:text-blue-400 transition-all active:scale-90" 
+              title="Import Record"
+            >
+              <Upload size={14} />
+            </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileImport} 
+              className="hidden" 
+              multiple 
+            />
+            <button 
+              onClick={() => store.setActiveModule('vault')}
+              className="p-1.5 hover:bg-white/10 rounded-md text-white/40 hover:text-white transition-all active:scale-90" 
+              title="Open Vault"
+            >
+              <Database size={14} />
+            </button>
+            <div className="w-px h-3 bg-white/10 mx-1" />
             <button className="p-1.5 hover:bg-white/10 rounded-md text-white/40 hover:text-white transition-all active:scale-90" title="Layout Presets">
               <Layout size={14} />
             </button>
@@ -85,26 +134,10 @@ export default function Workspace({ activeModule }: { activeModule: string }) {
       </div>
 
       <div className="flex-1 flex relative overflow-hidden">
-        <CanvasEngine 
-          entities={store.entities}
-          zoom={store.zoom}
-          pan={store.pan}
-          selectedEntityIds={store.selectedEntityIds}
-          onEntityUpdate={store.updateEntity}
-          onEntitySelect={store.selectEntity}
-          onEntityRemove={store.removeEntity}
-          onPanChange={store.setPan}
-          onZoomChange={store.setZoom}
-          onClearSelection={store.clearSelection}
-          onFitToView={store.fitToView}
-        />
+        <CanvasEngine />
         
         {/* Inspector Sidebar */}
-        <Inspector 
-          selectedEntities={store.entities.filter(e => store.selectedEntityIds.includes(e.id))}
-          onUpdate={store.updateEntity}
-          onRemove={store.removeEntity}
-        />
+        <Inspector />
       </div>
     </div>
   );

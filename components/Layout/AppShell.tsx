@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Sidebar from './Sidebar';
-import { useWorkspaceStore } from '@/lib/store';
-import { Search, Bell, User, Sparkles } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
+import { Search, Bell, User, Sparkles, Menu } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const [activeModule, setActiveModule] = useState('workspace');
+  const { activeModule, setActiveModule } = useAppStore();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   
   return (
     <div className="flex h-screen bg-[#05070a] text-white overflow-hidden font-sans selection:bg-blue-500/30">
-      <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300",
+          isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+      
+      <div className={cn(
+        "fixed md:relative z-50 transition-transform duration-300 h-full",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
+        <Sidebar activeModule={activeModule} onModuleChange={(id) => {
+          setActiveModule(id);
+          setIsSidebarOpen(false);
+        }} />
+      </div>
       
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Background Glows */}
@@ -18,6 +36,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Global Header */}
         <header className="h-14 border-b border-white/10 bg-black/40 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-40">
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-2 -ml-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-white transition-colors"
+            >
+              <Menu size={18} />
+            </button>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-white rounded flex items-center justify-center text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                 <Sparkles size={14} />

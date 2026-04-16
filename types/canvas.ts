@@ -27,8 +27,28 @@ export interface CanvasEntity {
   updatedAt: number;
 }
 
+export type RecordKind = 'text' | 'image' | 'pdf' | 'office' | 'archive' | 'binary' | 'unknown';
+
+export interface IngestedRecord {
+  id: string;
+  name: string;
+  ext: string;
+  mime: string;
+  size: number;
+  kind: RecordKind;
+  renderType: EntityType;
+  text?: string;
+  base64?: string;
+  arrayBuffer?: ArrayBuffer | string; // Can be string for persistence
+  objectUrl?: string;
+  createdAt: number;
+  updatedAt: number;
+  metadata?: Record<string, any>;
+}
+
 export interface WorkspaceState {
   entities: CanvasEntity[];
+  vault: IngestedRecord[];
   zoom: number;
   pan: { x: number; y: number };
   selectedEntityIds: string[];
