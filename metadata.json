@@ -1,0 +1,6 @@
+{
+  "name": "WhisperXStudio",
+  "description": "Full interactive visualization platform and shared editable canvas workspace.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["canvas", "ai", "visualization"]
+}
