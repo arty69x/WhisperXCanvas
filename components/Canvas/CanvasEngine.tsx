@@ -104,7 +104,7 @@ export default function CanvasEngine({
   return (
     <div 
       ref={containerRef}
-      className="w-full h-full relative overflow-hidden bg-[#0f0f0f] cursor-grab active:cursor-grabbing select-none"
+      className="w-full h-full relative overflow-hidden bg-[#05070a] cursor-grab active:cursor-grabbing select-none"
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -113,10 +113,10 @@ export default function CanvasEngine({
     >
       {/* Grid Background */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-10"
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{
           backgroundImage: `radial-gradient(circle, #ffffff 1px, transparent 1px)`,
-          backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
+          backgroundSize: `${30 * zoom}px ${30 * zoom}px`,
           backgroundPosition: `${pan.x}px ${pan.y}px`
         }}
       />
@@ -145,7 +145,7 @@ export default function CanvasEngine({
         {/* Selection Marquee */}
         {marquee && (
           <div 
-            className="absolute border border-white/40 bg-white/5 pointer-events-none"
+            className="absolute border border-blue-500/50 bg-blue-500/5 pointer-events-none rounded-sm"
             style={{
               left: Math.min(marquee.start.x, marquee.end.x),
               top: Math.min(marquee.start.y, marquee.end.y),
@@ -157,20 +157,20 @@ export default function CanvasEngine({
       </div>
 
       {/* Controls Overlay */}
-      <div className="absolute bottom-6 left-6 flex items-center gap-2 bg-[#1a1a1a] border border-white/10 p-1 rounded-lg shadow-2xl">
-        <button onClick={() => onZoomChange(zoom - 0.1)} className="p-2 hover:bg-white/5 rounded text-white/40 hover:text-white transition-colors">-</button>
-        <span className="text-xs font-mono w-12 text-center text-white/60">{Math.round(zoom * 100)}%</span>
-        <button onClick={() => onZoomChange(zoom + 0.1)} className="p-2 hover:bg-white/5 rounded text-white/40 hover:text-white transition-colors">+</button>
+      <div className="absolute bottom-6 left-6 flex items-center gap-2 glass-panel p-1 rounded-xl z-30">
+        <button onClick={() => onZoomChange(zoom - 0.1)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-all active:scale-90">-</button>
+        <span className="text-[10px] font-black w-12 text-center text-white/60 tracking-tighter">{Math.round(zoom * 100)}%</span>
+        <button onClick={() => onZoomChange(zoom + 0.1)} className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-all active:scale-90">+</button>
         <div className="w-px h-4 bg-white/10 mx-1" />
         <button 
           onClick={onFitToView} 
-          className="p-2 hover:bg-white/5 rounded text-white/40 hover:text-white transition-colors"
+          className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-all active:scale-90"
           title="Fit to View"
         >
           <Focus size={14} />
         </button>
         <div className="w-px h-4 bg-white/10 mx-1" />
-        <button onClick={() => { onPanChange({ x: 0, y: 0 }); onZoomChange(1); }} className="text-[10px] px-2 uppercase font-bold text-white/40 hover:text-white transition-colors">Reset</button>
+        <button onClick={() => { onPanChange({ x: 0, y: 0 }); onZoomChange(1); }} className="text-[10px] px-3 uppercase font-black tracking-widest text-white/40 hover:text-white transition-all active:scale-95">Reset</button>
       </div>
     </div>
   );
@@ -235,38 +235,38 @@ function EntityCard({ entity, isSelected, onSelect, onUpdate, onRemove, zoom }: 
         onSelect(e.shiftKey || e.metaKey);
       }}
       className={cn(
-        "absolute bg-[#1a1a1a] border rounded-xl shadow-2xl overflow-hidden flex flex-col group transition-shadow",
-        isSelected ? "border-white ring-2 ring-white/20 shadow-white/10" : "border-white/10 hover:border-white/30",
+        "absolute glass-panel rounded-2xl overflow-hidden flex flex-col group transition-all",
+        isSelected ? "ring-2 ring-white/40 shadow-[0_0_30px_rgba(255,255,255,0.1)]" : "hover:border-white/20",
         entity.locked && "cursor-default"
       )}
     >
       {/* Header */}
       <div className={cn(
-        "p-3 border-b border-white/5 flex items-center justify-between bg-white/5",
+        "p-3 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-md",
         !entity.locked ? "cursor-move" : "cursor-default"
       )}>
         <div className="flex items-center gap-2 overflow-hidden">
-          <div className={cn("w-2 h-2 rounded-full", isSelected ? "bg-white" : "bg-white/20")} />
-          <span className="text-xs font-bold truncate uppercase tracking-wider text-white/80">{entity.title}</span>
+          <div className={cn("w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]", isSelected ? "text-white bg-white" : "text-white/20 bg-white/20")} />
+          <span className="text-[10px] font-black truncate uppercase tracking-widest text-white/80 text-glow">{entity.title}</span>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !entity.locked }); }} className={cn("p-1 rounded hover:bg-white/10", entity.locked && "text-blue-400")}>
+          <button onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !entity.locked }); }} className={cn("p-1 rounded-md hover:bg-white/10 transition-colors", entity.locked && "text-blue-400")}>
             {entity.locked ? <Lock size={12} /> : <Unlock size={12} />}
           </button>
-          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="p-1 rounded hover:bg-red-500/20 text-white/40 hover:text-red-400">
+          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="p-1 rounded-md hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-colors">
             <Trash2 size={12} />
           </button>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden p-4 relative">
+      <div className="flex-1 overflow-hidden p-4 relative bg-black/20">
         {renderEntityContent(entity)}
       </div>
 
       {/* Footer / Meta */}
-      <div className="px-3 py-2 border-t border-white/5 bg-black/20 flex items-center justify-between">
-        <span className="text-[10px] uppercase font-bold text-white/20">{entity.type}</span>
+      <div className="px-3 py-2 border-t border-white/5 bg-white/5 flex items-center justify-between">
+        <span className="text-[9px] uppercase font-black tracking-widest text-white/20">{entity.type}</span>
         <div className="flex items-center gap-2">
            <button className="text-white/20 hover:text-white transition-colors">
              <ExternalLink size={10} />

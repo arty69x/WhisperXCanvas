@@ -51,26 +51,26 @@ export default function AI({ activeModule }: { activeModule: string }) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#0a0a0a]">
-      <header className="p-6 border-b border-white/10 flex items-center justify-between">
+    <div className="w-full h-full flex flex-col bg-transparent">
+      <header className="p-6 border-b border-white/10 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-black">
+          <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]">
             <Sparkles size={20} />
           </div>
           <div>
-            <h2 className="text-sm font-black uppercase tracking-widest">AI Service Layer</h2>
-            <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Gemini 3 Flash • Connected</p>
+            <h2 className="text-sm font-black uppercase tracking-widest text-glow">AI Service Layer</h2>
+            <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Gemini 3 Flash • Connected</p>
           </div>
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide relative z-10">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
-            <Sparkles size={48} />
+            <Sparkles size={48} className="text-white/20" />
             <div className="space-y-1">
-              <p className="text-sm font-bold uppercase tracking-widest">How can I assist you?</p>
-              <p className="text-xs">Ask about your workspace, archive, or forge tasks.</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em]">How can I assist you?</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest">Ask about your workspace, archive, or forge tasks.</p>
             </div>
           </div>
         )}
@@ -81,14 +81,14 @@ export default function AI({ activeModule }: { activeModule: string }) {
             msg.role === 'user' ? "ml-auto flex-row-reverse" : ""
           )}>
             <div className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-              msg.role === 'user' ? "bg-white text-black" : "bg-white/10 text-white"
+              "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg",
+              msg.role === 'user' ? "bg-white text-black" : "bg-white/10 text-white backdrop-blur-md border border-white/10"
             )}>
               {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
             </div>
             <div className={cn(
-              "p-4 rounded-2xl text-sm leading-relaxed",
-              msg.role === 'user' ? "bg-white/10 text-white" : "bg-[#141414] border border-white/5 text-white/80"
+              "p-4 rounded-3xl text-sm leading-relaxed",
+              msg.role === 'user' ? "bg-white/10 text-white backdrop-blur-md border border-white/10" : "glass-panel text-white/80"
             )}>
               {msg.text}
             </div>
@@ -96,18 +96,18 @@ export default function AI({ activeModule }: { activeModule: string }) {
         ))}
         {isLoading && (
           <div className="flex gap-4">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10">
               <Bot size={16} />
             </div>
-            <div className="p-4 rounded-2xl bg-[#141414] border border-white/5 flex items-center gap-2">
+            <div className="p-4 rounded-3xl glass-panel flex items-center gap-3">
               <Loader2 size={16} className="animate-spin text-white/40" />
-              <span className="text-xs text-white/40 font-bold uppercase tracking-widest">Thinking...</span>
+              <span className="text-[10px] text-white/40 font-black uppercase tracking-widest">Thinking...</span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-6 border-t border-white/10 bg-[#0f0f0f]">
+      <div className="p-6 border-t border-white/10 bg-black/20 backdrop-blur-xl relative z-20">
         <div className="relative max-w-4xl mx-auto">
           <input 
             type="text" 
@@ -115,12 +115,12 @@ export default function AI({ activeModule }: { activeModule: string }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Describe a transformation or ask a question..."
-            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-white/30 transition-colors pr-16"
+            className="w-full glass-input rounded-2xl px-6 py-4 text-sm pr-16"
           />
           <button 
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:bg-white/90 transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center hover:bg-white/90 transition-all disabled:opacity-50 active:scale-95 shadow-lg"
           >
             <Send size={18} />
           </button>

@@ -41,18 +41,18 @@ export default function Forge({ activeModule }: { activeModule: string }) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#0a0a0a]">
-      <header className="p-8 border-b border-white/10">
+    <div className="w-full h-full flex flex-col bg-transparent">
+      <header className="p-8 border-b border-white/10 relative z-10">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black uppercase italic tracking-tighter">Forge</h1>
-            <p className="text-xs text-white/40 font-bold uppercase tracking-wider">Visual Transformation & Fusion Engine</p>
+            <h1 className="text-3xl font-black uppercase italic tracking-tighter text-glow">Forge Matrix</h1>
+            <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Visual Transformation & Fusion Engine</p>
           </div>
           <button 
             onClick={startForge}
             disabled={isForging}
             className={cn(
-              "flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+              "flex items-center gap-3 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]",
               isForging ? "bg-white/10 text-white/40" : "bg-white text-black hover:scale-105 active:scale-95"
             )}
           >
@@ -62,11 +62,11 @@ export default function Forge({ activeModule }: { activeModule: string }) {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-px bg-white/5">
+      <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-px bg-white/5 relative z-10">
         {/* Configuration Panel */}
-        <div className="bg-[#0a0a0a] p-8 space-y-8 overflow-y-auto scrollbar-hide">
+        <div className="bg-black/20 backdrop-blur-md p-8 space-y-8 overflow-y-auto scrollbar-hide">
           <section className="space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Blueprint Selection</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Blueprint Selection</h3>
             <div className="grid grid-cols-2 gap-4">
               <ForgeOption label="Standard" sub="General Purpose" active />
               <ForgeOption label="Aggressive" sub="High Compression" />
@@ -76,7 +76,7 @@ export default function Forge({ activeModule }: { activeModule: string }) {
           </section>
 
           <section className="space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Matrix Configuration</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Matrix Configuration</h3>
             <div className="space-y-2">
               <MatrixToggle label="Preserve Metadata" active />
               <MatrixToggle label="Deep Normalization" active />
@@ -86,22 +86,22 @@ export default function Forge({ activeModule }: { activeModule: string }) {
           </section>
 
           <section className="space-y-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-white/40">Source Context</h3>
-            <div className="p-6 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 opacity-40">
-              <Layers size={24} />
-              <p className="text-[10px] font-bold uppercase tracking-widest">Select sources from Vault</p>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Source Context</h3>
+            <div className="p-10 border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-4 opacity-40 glass-panel border-none">
+              <Layers size={32} className="text-white/20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em]">Select sources from Vault</p>
             </div>
           </section>
         </div>
 
         {/* Console / Output Panel */}
-        <div className="bg-[#0f0f0f] flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20">
+        <div className="bg-black/40 backdrop-blur-xl flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
             <div className="flex items-center gap-2">
               <Terminal size={14} className="text-white/40" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Forge Console</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-glow">Forge Console</span>
             </div>
-            {isForging && <span className="text-[10px] font-mono text-white/40">{progress}%</span>}
+            {isForging && <span className="text-[10px] font-mono text-white/40 tracking-tighter">{progress}%</span>}
           </div>
           
           <div className="flex-1 p-6 font-mono text-[11px] space-y-2 overflow-y-auto scrollbar-hide">
@@ -109,7 +109,7 @@ export default function Forge({ activeModule }: { activeModule: string }) {
               <div key={i} className="flex gap-3">
                 <span className="text-white/20">[{new Date().toLocaleTimeString()}]</span>
                 <span className={cn(
-                  log.includes('Complete') ? "text-green-400" : "text-white/60"
+                  log.includes('Complete') ? "text-green-400 text-glow" : "text-white/60"
                 )}>{log}</span>
               </div>
             ))}
@@ -122,15 +122,17 @@ export default function Forge({ activeModule }: { activeModule: string }) {
           </div>
 
           {progress === 100 && (
-            <div className="p-6 bg-green-500/10 border-t border-green-500/20 flex items-center justify-between">
+            <div className="p-6 bg-green-500/10 border-t border-green-500/20 flex items-center justify-between backdrop-blur-md">
               <div className="flex items-center gap-3">
-                <CheckCircle2 size={20} className="text-green-400" />
+                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <CheckCircle2 size={20} className="text-green-400" />
+                </div>
                 <div>
-                  <p className="text-xs font-bold text-green-400 uppercase tracking-widest">Fusion Successful</p>
-                  <p className="text-[10px] text-green-400/60">1 asset generated • 0 errors</p>
+                  <p className="text-[10px] font-black text-green-400 uppercase tracking-[0.2em] text-glow">Fusion Successful</p>
+                  <p className="text-[9px] font-bold text-green-400/60 uppercase">1 asset generated • 0 errors</p>
                 </div>
               </div>
-              <button className="px-4 py-2 bg-green-400 text-black rounded-lg text-[10px] font-bold uppercase tracking-widest">
+              <button className="px-5 py-2.5 bg-green-400 text-black rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(74,222,128,0.3)] hover:scale-105 transition-all active:scale-95">
                 Export Result
               </button>
             </div>
@@ -144,22 +146,24 @@ export default function Forge({ activeModule }: { activeModule: string }) {
 function ForgeOption({ label, sub, active }: { label: string, sub: string, active?: boolean }) {
   return (
     <div className={cn(
-      "p-4 border rounded-xl cursor-pointer transition-all",
-      active ? "bg-white/10 border-white" : "bg-white/5 border-white/10 hover:border-white/30"
+      "p-4 rounded-2xl cursor-pointer transition-all",
+      active 
+        ? "bg-white/10 border border-white shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
+        : "glass-card border-none hover:bg-white/10"
     )}>
-      <p className="text-xs font-bold uppercase tracking-wider">{label}</p>
-      <p className="text-[9px] text-white/40 uppercase font-bold">{sub}</p>
+      <p className="text-[10px] font-black uppercase tracking-widest">{label}</p>
+      <p className="text-[9px] text-white/20 uppercase font-bold">{sub}</p>
     </div>
   );
 }
 
 function MatrixToggle({ label, active }: { label: string, active?: boolean }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">{label}</span>
+    <div className="flex items-center justify-between p-3 glass-card rounded-2xl border-none">
+      <span className="text-[10px] font-black uppercase tracking-widest text-white/60">{label}</span>
       <div className={cn(
-        "w-8 h-4 rounded-full relative transition-colors",
-        active ? "bg-white" : "bg-white/10"
+        "w-8 h-4 rounded-full relative transition-all",
+        active ? "bg-white shadow-[0_0_10px_white]" : "bg-white/10"
       )}>
         <div className={cn(
           "absolute top-1 w-2 h-2 rounded-full transition-all",

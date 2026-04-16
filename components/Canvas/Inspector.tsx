@@ -23,13 +23,13 @@ interface InspectorProps {
 export default function Inspector({ selectedEntities, onUpdate, onRemove }: InspectorProps) {
   if (selectedEntities.length === 0) {
     return (
-      <div className="w-80 border-l border-white/10 bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/20">
+      <div className="w-80 border-l border-white/10 bg-black/40 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center space-y-4 z-20">
+        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
           <Settings size={24} />
         </div>
         <div className="space-y-1">
-          <p className="text-xs font-bold uppercase tracking-widest text-white/40">No Selection</p>
-          <p className="text-[10px] text-white/20 uppercase font-bold tracking-wider">Select an entity to inspect</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">No Selection</p>
+          <p className="text-[9px] text-white/20 uppercase font-bold tracking-wider">Select an entity to inspect</p>
         </div>
       </div>
     );
@@ -39,13 +39,13 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
   const primary = selectedEntities[0];
 
   return (
-    <div className="w-80 border-l border-white/10 bg-[#0a0a0a] flex flex-col overflow-hidden">
-      <header className="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+    <div className="w-80 border-l border-white/10 bg-black/40 backdrop-blur-xl flex flex-col overflow-hidden z-20">
+      <header className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
         <div className="flex items-center gap-2">
           <Settings size={14} className="text-white/40" />
-          <h3 className="text-[10px] font-bold uppercase tracking-widest">Inspector</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-glow">Inspector</h3>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 bg-white/10 rounded text-white/60">
+        <span className="text-[9px] font-black px-2 py-0.5 bg-white/10 rounded-full text-white/60 border border-white/10">
           {selectedEntities.length} {isMulti ? 'Entities' : 'Entity'}
         </span>
       </header>
@@ -54,7 +54,7 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
         {/* Identity Section */}
         {!isMulti && (
           <section className="space-y-4">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/20">Identity</h4>
+            <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Identity</h4>
             <div className="space-y-3">
               <div className="space-y-1">
                 <label className="text-[9px] uppercase font-bold text-white/40">Title</label>
@@ -62,19 +62,19 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
                   type="text" 
                   value={primary.title}
                   onChange={(e) => onUpdate(primary.id, { title: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-white/30 transition-colors"
+                  className="w-full glass-input rounded-xl px-3 py-2 text-xs"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[9px] uppercase font-bold text-white/40">Type</label>
-                  <div className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-bold uppercase text-white/40">
+                  <div className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] font-black uppercase text-white/40">
                     {primary.type}
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] uppercase font-bold text-white/40">ID</label>
-                  <div className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white/20 truncate">
+                  <div className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] font-mono text-white/20 truncate">
                     {primary.id}
                   </div>
                 </div>
@@ -85,7 +85,7 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
 
         {/* Transform Section */}
         <section className="space-y-4">
-          <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/20">Transform</h4>
+          <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Transform</h4>
           <div className="grid grid-cols-2 gap-4">
             <TransformInput 
               label="X" 
@@ -112,18 +112,18 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
 
         {/* Appearance Section */}
         <section className="space-y-4">
-          <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/20">Appearance</h4>
+          <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Appearance</h4>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between p-3 glass-card rounded-2xl">
               <div className="flex items-center gap-2">
                 <Lock size={12} className="text-white/40" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Locked</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Locked</span>
               </div>
               <button 
                 onClick={() => selectedEntities.forEach(e => onUpdate(e.id, { locked: !e.locked }))}
                 className={cn(
-                  "w-8 h-4 rounded-full relative transition-colors",
-                  primary.locked ? "bg-white" : "bg-white/10"
+                  "w-8 h-4 rounded-full relative transition-all",
+                  primary.locked ? "bg-white shadow-[0_0_10px_white]" : "bg-white/10"
                 )}
               >
                 <div className={cn(
@@ -132,10 +132,10 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
                 )} />
               </button>
             </div>
-            <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between p-3 glass-card rounded-2xl">
               <div className="flex items-center gap-2">
                 <Layers size={12} className="text-white/40" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Z-Index</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Z-Index</span>
               </div>
               <span className="text-[10px] font-mono text-white/40">{isMulti ? '-' : primary.zIndex}</span>
             </div>
@@ -144,14 +144,14 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
 
         {/* Actions Section */}
         <section className="space-y-4">
-          <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/20">Actions</h4>
+          <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Actions</h4>
           <div className="grid grid-cols-2 gap-2">
-            <button className="flex items-center justify-center gap-2 p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors text-[10px] font-bold uppercase tracking-widest">
+            <button className="flex items-center justify-center gap-2 p-3 glass-button rounded-2xl text-[9px] font-black uppercase tracking-widest">
               <Copy size={12} /> Duplicate
             </button>
             <button 
               onClick={() => selectedEntities.forEach(e => onRemove(e.id))}
-              className="flex items-center justify-center gap-2 p-3 bg-red-500/10 rounded-xl border border-red-500/20 hover:bg-red-500/20 transition-colors text-[10px] font-bold uppercase tracking-widest text-red-400"
+              className="flex items-center justify-center gap-2 p-3 bg-red-500/10 rounded-2xl border border-red-500/20 hover:bg-red-500/20 transition-all text-[9px] font-black uppercase tracking-widest text-red-400 active:scale-95"
             >
               <Trash2 size={12} /> Delete
             </button>
@@ -159,8 +159,8 @@ export default function Inspector({ selectedEntities, onUpdate, onRemove }: Insp
         </section>
       </div>
 
-      <footer className="p-4 border-t border-white/10 bg-black/40">
-        <button className="w-full py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-colors">
+      <footer className="p-4 border-t border-white/10 bg-white/5">
+        <button className="w-full py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
           Export Selection
         </button>
       </footer>
@@ -177,7 +177,7 @@ function TransformInput({ label, value, onChange }: { label: string, value: stri
           type="text" 
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono focus:outline-none focus:border-white/30 transition-colors"
+          className="w-full glass-input rounded-xl px-3 py-2 text-[10px] font-mono"
         />
       </div>
     </div>

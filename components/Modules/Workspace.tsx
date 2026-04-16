@@ -10,12 +10,12 @@ export default function Workspace({ activeModule }: { activeModule: string }) {
   if (activeModule !== 'workspace') return null;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col bg-transparent">
       {/* Toolbar */}
-      <div className="h-12 border-b border-white/10 bg-[#1a1a1a] flex items-center justify-between px-4 z-10">
+      <div className="h-12 border-b border-white/10 bg-black/20 backdrop-blur-md flex items-center justify-between px-4 z-10">
         <div className="flex items-center gap-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-white/40">Workspace</h2>
-          <div className="flex items-center gap-1">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Workspace</h2>
+          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/5">
             <button 
               onClick={() => store.addEntity({
                 type: 'ai-chat-panel',
@@ -25,10 +25,10 @@ export default function Workspace({ activeModule }: { activeModule: string }) {
                 width: 300,
                 height: 400
               })}
-              className="p-1.5 hover:bg-white/5 rounded text-white/60 hover:text-white transition-colors"
+              className="p-1.5 hover:bg-white/10 rounded-md text-white/40 hover:text-white transition-all active:scale-90"
               title="Add AI Panel"
             >
-              <Plus size={16} />
+              <Plus size={14} />
             </button>
             <button 
               onClick={() => store.addEntity({
@@ -39,10 +39,10 @@ export default function Workspace({ activeModule }: { activeModule: string }) {
                 width: 300,
                 height: 250
               })}
-              className="p-1.5 hover:bg-white/5 rounded text-white/60 hover:text-white transition-colors"
+              className="p-1.5 hover:bg-white/10 rounded-md text-white/40 hover:text-white transition-all active:scale-90"
               title="Add Summary Panel"
             >
-              <FileText size={16} />
+              <FileText size={14} />
             </button>
             <button 
               onClick={() => store.addEntity({
@@ -53,19 +53,20 @@ export default function Workspace({ activeModule }: { activeModule: string }) {
                 width: 400,
                 height: 300
               })}
-              className="p-1.5 hover:bg-white/5 rounded text-white/60 hover:text-white transition-colors"
+              className="p-1.5 hover:bg-white/10 rounded-md text-white/40 hover:text-white transition-all active:scale-90"
               title="Add Doc Panel"
             >
-              <FileJson size={16} />
+              <FileJson size={14} />
             </button>
-            <button className="p-1.5 hover:bg-white/5 rounded text-white/60 hover:text-white transition-colors" title="Layout Presets">
-              <Layout size={16} />
+            <div className="w-px h-3 bg-white/10 mx-1" />
+            <button className="p-1.5 hover:bg-white/10 rounded-md text-white/40 hover:text-white transition-all active:scale-90" title="Layout Presets">
+              <Layout size={14} />
             </button>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-white text-black rounded text-[10px] font-bold uppercase tracking-wider hover:bg-white/90 transition-colors">
+          <button className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all active:scale-95">
             <Save size={12} />
             Save Preset
           </button>
@@ -76,9 +77,9 @@ export default function Workspace({ activeModule }: { activeModule: string }) {
                 store.entities.forEach(e => store.removeEntity(e.id));
               }
             }}
-            className="p-1.5 hover:bg-red-500/20 rounded text-white/20 hover:text-red-400 transition-colors"
+            className="p-2 hover:bg-red-500/20 rounded-lg text-white/20 hover:text-red-400 transition-all active:scale-90"
           >
-            <Trash2 size={16} />
+            <Trash2 size={14} />
           </button>
         </div>
       </div>

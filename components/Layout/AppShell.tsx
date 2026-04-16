@@ -7,18 +7,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [activeModule, setActiveModule] = useState('workspace');
   
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#05070a] text-white overflow-hidden font-sans selection:bg-blue-500/30">
       <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
       
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        {/* Background Glows */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
+
         {/* Global Header */}
-        <header className="h-14 border-b border-white/10 bg-[#0a0a0a] flex items-center justify-between px-6 shrink-0">
+        <header className="h-14 border-b border-white/10 bg-black/40 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-40">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-white rounded flex items-center justify-center text-black">
+              <div className="w-6 h-6 bg-white rounded flex items-center justify-center text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                 <Sparkles size={14} />
               </div>
-              <span className="text-xs font-black uppercase tracking-widest italic">WhisperXStudio</span>
+              <span className="text-xs font-black uppercase tracking-widest italic text-glow">WhisperXStudio</span>
             </div>
             <div className="h-4 w-px bg-white/10" />
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40">
@@ -34,20 +38,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <input 
                 type="text" 
                 placeholder="Search Workspace..." 
-                className="bg-white/5 border border-white/10 rounded-full pl-9 pr-4 py-1.5 text-[10px] w-64 focus:outline-none focus:border-white/30 transition-all"
+                className="glass-input rounded-full pl-9 pr-4 py-1.5 text-[10px] w-64"
               />
             </div>
             <div className="flex items-center gap-4">
-              <button className="text-white/40 hover:text-white transition-colors relative">
+              <button className="text-white/40 hover:text-white transition-colors relative glass-button p-2 rounded-full border-none bg-transparent">
                 <Bell size={16} />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#0a0a0a]" />
+                <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
               </button>
               <div className="flex items-center gap-3 pl-4 border-l border-white/10">
                 <div className="text-right hidden sm:block">
-                  <p className="text-[10px] font-black uppercase tracking-widest">Arty69xx</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-glow">Arty69xx</p>
                   <p className="text-[9px] font-bold text-white/20 uppercase">Administrator</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer">
                   <User size={16} className="text-white/40" />
                 </div>
               </div>
