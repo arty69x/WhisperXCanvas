@@ -5,7 +5,7 @@ export type EntityType =
   | 'ai-task-panel' | 'forge-blueprint' | 'forge-matrix' 
   | 'forge-result' | 'vault-preview' | 'contact-panel' 
   | 'budget-panel' | 'code-preview' | 'markdown-preview' 
-  | 'media-preview' | 'pdf-preview' | 'comparison-panel';
+  | 'media-preview' | 'pdf-preview' | 'comparison-panel' | 'group';
 
 export interface CanvasEntity {
   id: string;
@@ -13,6 +13,7 @@ export interface CanvasEntity {
   title: string;
   subtitle?: string;
   linkedSourceIds?: string[];
+  groupId?: string;
   x: number;
   y: number;
   width: number;

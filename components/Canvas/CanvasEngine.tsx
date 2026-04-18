@@ -23,7 +23,12 @@ import {
   MoreVertical,
   Zap,
   Link,
-  GitBranch
+  GitBranch,
+  Undo2,
+  Redo2,
+  Group,
+  Ungroup,
+  Trash2
 } from 'lucide-react';
 import { EntityLink } from '@/types/canvas';
 
@@ -47,6 +52,10 @@ export default function CanvasEngine() {
   const removeLink = useAppStore((state) => state.removeLink);
   const setLinkingMode = useAppStore((state) => state.setLinkingMode);
   const setLinkingSourceId = useAppStore((state) => state.setLinkingSourceId);
+  const undo = useAppStore((state) => state.undo);
+  const redo = useAppStore((state) => state.redo);
+  const groupSelectedEntities = useAppStore((state) => state.groupSelectedEntities);
+  const pushHistory = useAppStore((state) => state.pushHistory);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isPanning = useRef(false);
@@ -155,10 +164,19 @@ export default function CanvasEngine() {
         e.preventDefault();
         entities.forEach(entity => selectEntity(entity.id, true));
       }
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+      if (e.key === 'g' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        groupSelectedEntities();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEntityIds, removeEntity, entities, selectEntity]);
+  }, [selectedEntityIds, removeEntity, entities, selectEntity, undo, redo, groupSelectedEntities]);
 
   return (
     <div 
@@ -303,6 +321,23 @@ export default function CanvasEngine() {
               Orchestrate AI Workflow
             </button>
             <button 
+              onClick={() => groupSelectedEntities()}
+              className="p-2.5 glass-button rounded-xl text-pink-300/60 hover:text-white"
+              title="Group Selected"
+            >
+              <Group size={16} />
+            </button>
+            <button 
+              onClick={() => {
+                pushHistory();
+                selectedEntityIds.forEach(id => removeEntity(id));
+              }}
+              className="p-2.5 glass-button rounded-xl text-red-400/60 hover:text-red-400"
+              title="Remove Selected"
+            >
+              <Trash2 size={16} />
+            </button>
+            <button 
               onClick={() => clearSelection()}
               className="p-2.5 glass-button rounded-xl text-pink-200/40 hover:text-white"
             >
@@ -314,6 +349,15 @@ export default function CanvasEngine() {
 
       {/* Control Overlay */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 glass-panel rounded-2xl shadow-2xl z-20">
+        <div className="flex items-center gap-1 pr-2 border-r border-white/5">
+          <button onClick={() => undo()} className="p-2 hover:bg-white/10 rounded-xl text-pink-200/40 hover:text-white transition-all" title="Undo (Ctrl+Z)">
+            <Undo2 size={14} />
+          </button>
+          <button onClick={() => redo()} className="p-2 hover:bg-white/10 rounded-xl text-pink-200/40 hover:text-white transition-all" title="Redo (Ctrl+Shift+Z)">
+            <Redo2 size={14} />
+          </button>
+        </div>
+        
         <button onClick={() => setZoom(Math.max(zoom - 0.1, 0.1))} className="p-2 hover:bg-white/10 rounded-xl text-pink-200/40 hover:text-white transition-all">
           <Minus size={14} />
         </button>
@@ -375,6 +419,7 @@ function EntityCard({
     e.stopPropagation();
     onSelect(e.shiftKey || e.metaKey);
     setIsDragging(true);
+    useAppStore.getState().pushHistory();
     
     // Zoom-aware drag offset
     setDragOffset({
@@ -386,6 +431,7 @@ function EntityCard({
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsResizing(true);
+    useAppStore.getState().pushHistory();
   };
 
   useEffect(() => {
@@ -400,6 +446,18 @@ function EntityCard({
         if (settings.canvasSnapToGrid) {
           newX = Math.round(newX / snap) * snap;
           newY = Math.round(newY / snap) * snap;
+        }
+
+        const dx = newX - entity.x;
+        const dy = newY - entity.y;
+
+        if (entity.groupId && !entity.locked) {
+           const { entities, updateEntity } = useAppStore.getState();
+           entities.forEach(other => {
+             if (other.groupId === entity.groupId && other.id !== entity.id) {
+                updateEntity(other.id, { x: other.x + dx, y: other.y + dy });
+             }
+           });
         }
 
         onUpdate({ x: newX, y: newY });
@@ -452,13 +510,17 @@ function EntityCard({
         "group glass-card transition-all duration-300 rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl",
         isSelected ? "border-pink-300/50 ring-2 ring-pink-500/20 shadow-[0_0_60px_rgba(255,126,179,0.15)] bg-white/20" : "border-white/10 hover:border-pink-300/30",
         entity.locked && "opacity-80",
+        entity.type === 'group' && "bg-pink-500/5 border-dashed border-pink-500/20 rounded-[3rem] shadow-none",
         isLinkingSource && "ring-4 ring-pink-500 shadow-[0_0_40px_rgba(255,126,179,0.5)]",
         isPotentialTarget && "ring-2 ring-pink-400/40 cursor-alias"
       )}
       onMouseDown={handleMouseDown}
     >
       {/* Header */}
-      <div className="h-14 px-6 flex items-center justify-between bg-white/[0.05] border-b border-white/10">
+      <div className={cn(
+        "h-14 px-6 flex items-center justify-between bg-white/[0.05] border-b border-white/10",
+        entity.type === 'group' && "bg-transparent border-transparent"
+      )}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-300/60 group-hover:text-pink-300 transition-colors">
             {renderEntityIcon(entity.type)}
@@ -469,6 +531,15 @@ function EntityCard({
           </div>
         </div>
         <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+          {entity.type === 'group' && (
+             <button 
+                onClick={(e) => { e.stopPropagation(); useAppStore.getState().ungroupEntities(entity.id); }}
+                className="p-1.5 glass-button rounded-lg text-pink-100/20 hover:text-red-400"
+                title="Ungroup"
+             >
+                <Ungroup size={12} />
+             </button>
+          )}
           {entity.isAiGenerated && (
             <div className="flex items-center gap-1.5 px-2 py-1 bg-pink-500/10 border border-pink-500/20 rounded-lg mr-2">
               <Sparkles size={10} className="text-pink-400" />

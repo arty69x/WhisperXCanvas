@@ -76,6 +76,20 @@ interface AppState extends WorkspaceState {
   prefilledAiQuery: string | null;
   setAiQuery: (query: string | null) => void;
   orchestrateEntities: (ids: string[]) => void;
+
+  // New: History
+  pushHistory: () => void;
+  undo: () => void;
+  redo: () => void;
+  
+  // New: Grouping
+  groupSelectedEntities: () => void;
+  ungroupEntities: (groupId: string) => void;
+}
+
+interface InternalState {
+  past: Pick<AppState, 'entities' | 'links'>[];
+  future: Pick<AppState, 'entities' | 'links'>[];
 }
 
 export const useAppStore = create<AppState>()(
@@ -109,6 +123,12 @@ export const useAppStore = create<AppState>()(
       isFocusedMode: false,
       prefilledAiQuery: null,
 
+      // Internal History State (not part of AppState interface but used in actions)
+      _history: {
+        past: [],
+        future: []
+      } as any,
+
       // Actions
       setUser: (user) => set((state) => ({ user: { ...state.user, ...user } })),
       
@@ -123,20 +143,23 @@ export const useAppStore = create<AppState>()(
         isFocusedMode: focused !== undefined ? focused : !state.isFocusedMode 
       })),
 
-      addEntity: (entity) => set((state) => {
-        const newEntity: CanvasEntity = {
-          ...entity,
-          id: Math.random().toString(36).substring(2, 11),
-          zIndex: state.entities.length,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          locked: false,
-        };
-        return {
-          entities: [...state.entities, newEntity],
-          selectedEntityIds: [newEntity.id],
-        };
-      }),
+      addEntity: (entity) => {
+        get().pushHistory();
+        set((state) => {
+          const newEntity: CanvasEntity = {
+            ...entity,
+            id: Math.random().toString(36).substring(2, 11),
+            zIndex: state.entities.length,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            locked: false,
+          };
+          return {
+            entities: [...state.entities, newEntity],
+            selectedEntityIds: [newEntity.id],
+          };
+        });
+      },
 
       updateEntity: (id, updates) => set((state) => ({
         entities: state.entities.map((e) =>
@@ -144,40 +167,53 @@ export const useAppStore = create<AppState>()(
         ),
       })),
 
-      toggleEntityLock: (id) => set((state) => ({
-        entities: state.entities.map((e) =>
-          e.id === id ? { ...e, locked: !e.locked, updatedAt: Date.now() } : e
-        ),
-      })),
+      toggleEntityLock: (id) => {
+        get().pushHistory();
+        set((state) => ({
+          entities: state.entities.map((e) =>
+            e.id === id ? { ...e, locked: !e.locked, updatedAt: Date.now() } : e
+          ),
+        }));
+      },
 
-      removeEntity: (id) => set((state) => ({
-        entities: state.entities.filter((e) => e.id !== id),
-        links: state.links.filter((l) => l.sourceId !== id && l.targetId !== id),
-        selectedEntityIds: state.selectedEntityIds.filter((sid) => sid !== id),
-      })),
+      removeEntity: (id) => {
+        get().pushHistory();
+        set((state) => ({
+          entities: state.entities.filter((e) => e.id !== id),
+          links: state.links.filter((l) => l.sourceId !== id && l.targetId !== id),
+          selectedEntityIds: state.selectedEntityIds.filter((sid) => sid !== id),
+        }));
+      },
 
-      addLink: (sourceId, targetId, type = 'data-flow') => set((state) => {
+      addLink: (sourceId, targetId, type = 'data-flow') => {
         // Prevent duplicate links
-        const exists = state.links.find(l => 
+        const { links, pushHistory } = get();
+        const exists = links.find(l => 
           (l.sourceId === sourceId && l.targetId === targetId) ||
           (l.sourceId === targetId && l.targetId === sourceId)
         );
-        if (exists || sourceId === targetId) return state;
+        if (exists || sourceId === targetId) return;
 
-        const newLink: EntityLink = {
-          id: `link_${Math.random().toString(36).substring(2, 9)}`,
-          sourceId,
-          targetId,
-          type,
-          animated: true,
-          color: '#ff7eb3'
-        };
-        return { links: [...state.links, newLink] };
-      }),
+        pushHistory();
+        set((state) => {
+          const newLink: EntityLink = {
+            id: `link_${Math.random().toString(36).substring(2, 9)}`,
+            sourceId,
+            targetId,
+            type,
+            animated: true,
+            color: '#ff7eb3'
+          };
+          return { links: [...state.links, newLink] };
+        });
+      },
 
-      removeLink: (id) => set((state) => ({
-        links: state.links.filter(l => l.id !== id)
-      })),
+      removeLink: (id) => {
+        get().pushHistory();
+        set((state) => ({
+          links: state.links.filter(l => l.id !== id)
+        }));
+      },
 
       setLinkingMode: (active) => set({ isLinkingMode: active, linkingSourceId: null }),
       setLinkingSourceId: (id) => set({ linkingSourceId: id }),
@@ -290,11 +326,104 @@ export const useAppStore = create<AppState>()(
         const titles = selected.map(e => e.title).join(', ');
         const query = `Orchestrate a workflow for the following entities: ${titles}. Define the task sequence and suggest new orchestration nodes.`;
         get().setAiQuery(query);
+      },
+
+      pushHistory: () => set((state: any) => ({
+        _history: {
+          past: [...state._history.past, { entities: state.entities, links: state.links }].slice(-50), // Keep last 50 states
+          future: []
+        }
+      })),
+
+      undo: () => set((state: any) => {
+        const history = state._history;
+        if (history.past.length === 0) return state;
+        
+        const previous = history.past[history.past.length - 1];
+        const newPast = history.past.slice(0, history.past.length - 1);
+        
+        return {
+          entities: previous.entities,
+          links: previous.links,
+          _history: {
+            past: newPast,
+            future: [{ entities: state.entities, links: state.links }, ...history.future]
+          }
+        };
+      }),
+
+      redo: () => set((state: any) => {
+        const history = state._history;
+        if (history.future.length === 0) return state;
+        
+        const next = history.future[0];
+        const newFuture = history.future.slice(1);
+        
+        return {
+          entities: next.entities,
+          links: next.links,
+          _history: {
+            past: [...history.past, { entities: state.entities, links: state.links }],
+            future: newFuture
+          }
+        };
+      }),
+
+      groupSelectedEntities: () => {
+        const { selectedEntityIds, entities, pushHistory } = get();
+        if (selectedEntityIds.length < 2) return;
+
+        pushHistory();
+        set((state) => {
+          const groupId = `group_${Math.random().toString(36).substring(2, 9)}`;
+          const selected = state.entities.filter(e => selectedEntityIds.includes(e.id));
+          const minX = Math.min(...selected.map(e => e.x));
+          const minY = Math.min(...selected.map(e => e.y));
+          const maxX = Math.max(...selected.map(e => e.x + e.width));
+          const maxY = Math.max(...selected.map(e => e.y + e.height));
+          
+          const padding = 40;
+          const groupEntity: CanvasEntity = {
+            id: groupId,
+            type: 'group',
+            title: 'Logical Group',
+            x: minX - padding,
+            y: minY - padding,
+            width: (maxX - minX) + padding * 2,
+            height: (maxY - minY) + padding * 2,
+            zIndex: Math.min(...selected.map(e => e.zIndex)) - 1,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          };
+
+          return {
+            entities: [
+              ...state.entities.map(e => 
+                selectedEntityIds.includes(e.id) ? { ...e, groupId } : e
+              ),
+              groupEntity
+            ]
+          };
+        });
+      },
+
+      ungroupEntities: (groupId) => {
+        get().pushHistory();
+        set((state) => ({
+          entities: state.entities
+            .filter(e => e.id !== groupId)
+            .map(e => e.groupId === groupId ? { ...e, groupId: undefined } : e)
+        }));
       }
     }),
     {
       name: 'whisperx-storage',
       storage: createJSONStorage(() => localStorage),
+      // Don't persist history stacks to avoid massive localstorage blobs
+      partialize: (state) => {
+        const { _history, ...rest } = state as any;
+        return rest;
+      }
     }
   )
 );
