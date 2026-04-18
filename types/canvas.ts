@@ -21,6 +21,8 @@ export interface CanvasEntity {
   minimized?: boolean;
   pinned?: boolean;
   locked?: boolean;
+  isAiGenerated?: boolean;
+  agentLabel?: string;
   visualMode?: 'compact' | 'full' | 'preview';
   payload?: any;
   createdAt: number;
@@ -46,8 +48,19 @@ export interface IngestedRecord {
   metadata?: Record<string, any>;
 }
 
+export interface EntityLink {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  label?: string;
+  type?: 'dependency' | 'data-flow' | 'reference';
+  color?: string;
+  animated?: boolean;
+}
+
 export interface WorkspaceState {
   entities: CanvasEntity[];
+  links: EntityLink[];
   vault: IngestedRecord[];
   zoom: number;
   pan: { x: number; y: number };

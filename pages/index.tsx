@@ -39,12 +39,11 @@ const MODULE_COMPONENTS: Record<string, React.ComponentType<{ activeModule: stri
 
 export default function HomePage() {
   const activeModule = useAppStore((state) => state.activeModule);
+  const ActiveComponent = MODULE_COMPONENTS[activeModule] || Workspace;
 
   return (
     <AppShell>
-      {Object.entries(MODULE_COMPONENTS).map(([id, Component]) => (
-        <Component key={id} activeModule={activeModule} />
-      ))}
+      <ActiveComponent activeModule={activeModule} />
     </AppShell>
   );
 }

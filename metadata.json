@@ -1,6 +1,6 @@
 {
-  "name": "VisionLock Studio",
-  "description": "Pixel-perfect screenshot reconstruction, document intelligence, and premium Tailwind UI generator.",
+  "name": "WhisperXWorkspace",
+  "description": "High-fidelity Workspace-first engine for unified data visualization, agentic orchestration, and immersive exploration.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["canvas", "ai", "visualization"]
+  "majorCapabilities": ["canvas", "ai", "visualization", "agentic"]
 }

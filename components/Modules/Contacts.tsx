@@ -12,49 +12,53 @@ export default function Contacts({ activeModule }: { activeModule: string }) {
   ];
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#0a0a0a]">
-      <header className="p-8 border-b border-white/10 flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter">Contacts</h1>
-          <p className="text-xs text-white/40 font-bold uppercase tracking-wider">System Stakeholders & Team</p>
+    <div className="w-full h-full flex flex-col bg-transparent overflow-hidden p-6 gap-6">
+      <header className="p-10 glass-panel border-white/5 bg-black/10 backdrop-blur-3xl rounded-[2.5rem] relative z-10">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-black uppercase italic tracking-tighter text-glow text-white/90">Contacts_Registry</h1>
+            <p className="text-[10px] text-pink-300/40 font-black uppercase tracking-[0.2em]">System Stakeholders • Neural Team Nodes</p>
+          </div>
+          <button className="flex items-center gap-3 px-6 py-3 bg-pink-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-pink-500 transition-all shadow-[0_0_30px_rgba(219,39,119,0.3)] active:scale-95">
+            <Plus size={16} /> Synthesis Contact
+          </button>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-white/90 transition-colors">
-          <Plus size={14} /> Add Contact
-        </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-8 scrollbar-hide">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex-1 overflow-y-auto p-2 scrollbar-hide relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {contacts.map((contact) => (
-            <div key={contact.id} className="group bg-[#141414] border border-white/10 rounded-2xl p-6 space-y-6 hover:border-white/30 transition-all">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/20 group-hover:text-white transition-colors relative">
-                    <Users size={24} />
+            <div key={contact.id} className="group glass-panel border-white/5 bg-black/10 rounded-[2.5rem] p-8 space-y-8 hover:bg-pink-500/[0.02] hover:border-pink-500/20 transition-all active:scale-[0.98] relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 rounded-[1.5rem] bg-pink-500/5 border border-pink-500/10 flex items-center justify-center text-pink-300/40 group-hover:text-pink-400 group-hover:bg-pink-500/10 transition-all relative">
+                    <Users size={32} />
                     <div className={cn(
-                      "absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#141414]",
-                      contact.status === 'online' ? "bg-green-500" : "bg-white/20"
+                      "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-[#0a050a]",
+                      contact.status === 'online' ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : "bg-white/20"
                     )} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold">{contact.name}</h4>
-                    <p className="text-[10px] text-white/40 uppercase font-bold tracking-wider">{contact.role}</p>
+                    <h4 className="text-lg font-black uppercase tracking-tight text-white/80 group-hover:text-white transition-colors">{contact.name}</h4>
+                    <p className="text-[10px] text-pink-100/20 uppercase font-black tracking-[0.2em] mt-1 italic">{contact.role}</p>
                   </div>
                 </div>
-                <button className="p-1 hover:bg-white/5 rounded text-white/20 hover:text-white">
-                  <MoreVertical size={16} />
+                <button className="p-2 hover:bg-white/5 rounded-xl text-pink-100/20 hover:text-pink-400 transition-colors">
+                  <MoreVertical size={20} />
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-4 relative z-10">
                 <ContactInfo icon={Mail} label={contact.email} />
                 <ContactInfo icon={Phone} label="+1 (555) 000-0000" />
-                <ContactInfo icon={Globe} label="whisperx.studio" />
+                <ContactInfo icon={Globe} label="whisperx.canvas" />
               </div>
 
-              <div className="pt-4 border-t border-white/5 flex gap-2">
-                <button className="flex-1 py-2 bg-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">Message</button>
-                <button className="flex-1 py-2 bg-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">Profile</button>
+              <div className="pt-6 border-t border-white/5 flex gap-3 relative z-10">
+                <button className="flex-1 py-3 bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-pink-100/30 hover:bg-white/10 hover:text-white transition-all active:scale-95 border border-white/5">Message</button>
+                <button className="flex-1 py-3 glass-button rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all active:scale-95 border-white/5">Profile_Link</button>
               </div>
             </div>
           ))}
@@ -66,9 +70,9 @@ export default function Contacts({ activeModule }: { activeModule: string }) {
 
 function ContactInfo({ icon: Icon, label }: { icon: any, label: string }) {
   return (
-    <div className="flex items-center gap-3 text-white/40 group-hover:text-white/60 transition-colors">
-      <Icon size={12} />
-      <span className="text-[10px] font-medium">{label}</span>
+    <div className="flex items-center gap-4 text-pink-100/20 group-hover:text-pink-100/40 transition-colors group/info">
+      <Icon size={16} className="group-hover/info:text-pink-400 transition-colors" />
+      <span className="text-[11px] font-black uppercase tracking-widest">{label}</span>
     </div>
   );
 }
