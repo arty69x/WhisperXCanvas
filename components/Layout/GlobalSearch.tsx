@@ -65,13 +65,13 @@ export default function GlobalSearch() {
     <div ref={searchRef}>
       <button 
         onClick={() => setIsOpen(true)}
-        className="glass-button px-4 py-2 rounded-2xl flex items-center gap-3 group border-white/5 bg-black/5"
+        className="px-4 py-2 rounded-xl flex items-center gap-3 group border border-gray-100 bg-gray-50 hover:bg-white hover:border-gray-200 transition-all hover:shadow-md"
       >
-        <Search size={16} className="text-pink-300/40 group-hover:text-pink-400" />
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-100/20">Search Matrix...</span>
-        <div className="flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded-lg border border-white/10 ml-2">
-            <Command size={10} className="text-pink-100/40" />
-            <span className="text-[9px] font-black text-pink-100/40">K</span>
+        <Search size={16} className="text-gray-400 group-hover:text-gray-900" />
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 group-hover:text-gray-600">Spatial Search...</span>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white rounded border border-gray-100 ml-2 group-hover:bg-gray-900">
+            <Command size={10} className="text-gray-400 group-hover:text-white" />
+            <span className="text-[9px] font-black text-gray-400 group-hover:text-white">K</span>
         </div>
       </button>
 
@@ -83,73 +83,79 @@ export default function GlobalSearch() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-[#0f050a]/60 backdrop-blur-md z-[200]" 
+              className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[200]" 
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: -20 }}
+              initial={{ scale: 0.95, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: -20 }}
-              className="fixed top-24 left-1/2 -translate-x-1/2 w-[600px] z-[201] glass-panel border-white/10 bg-black/40 shadow-2xl rounded-[2.5rem] overflow-hidden"
+              exit={{ scale: 0.95, opacity: 0, y: -20 }}
+              className="fixed top-24 left-1/2 -translate-x-1/2 w-[600px] z-[201] border border-gray-100 bg-white shadow-2xl rounded-3xl overflow-hidden"
             >
-              <div className="p-6 border-b border-white/10 flex items-center gap-4 bg-white/[0.02]">
-                <Search size={24} className="text-pink-400" />
+              <div className="p-6 border-b border-gray-100 flex items-center gap-4 bg-gray-50/50">
+                <Search size={24} className="text-gray-900" />
                 <input 
                   autoFocus
                   type="text" 
-                  placeholder="Query titles, types, or internal data..." 
-                  className="w-full bg-transparent border-none outline-none text-base font-black uppercase tracking-widest text-pink-50 placeholder:text-pink-100/10"
+                  placeholder="Universal discovery across spatial nodes..." 
+                  className="w-full bg-transparent border-none outline-none text-base font-bold uppercase tracking-wide text-gray-900 placeholder:text-gray-300"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeys}
                 />
-                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/5 rounded-full text-pink-100/20 transition-all">
+                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-all">
                   <X size={20} />
                 </button>
               </div>
 
               <div className="max-h-[400px] overflow-y-auto scrollbar-hide p-4">
                 {query.trim() === '' && filteredEntities.length === 0 && (
-                   <div className="p-12 text-center space-y-4 opacity-20">
-                      <Layout size={40} className="mx-auto text-pink-300" />
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-pink-200">No Entities Configured</p>
-                      <p className="text-[9px] font-bold uppercase tracking-widest">Spawn nodes in the workspace matrix to enable spatial discovery.</p>
+                   <div className="p-12 text-center space-y-4">
+                      <Layout size={40} className="mx-auto text-gray-200" />
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Initialize Nodes to Begin</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-gray-300">WhisperX spatial discovery requires active entities in the workspace matrix.</p>
                    </div>
                 )}
                 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {filteredEntities.map((e, idx) => (
                     <button 
                       key={e.id}
                       onClick={() => handleSelect(e.id)}
                       onMouseEnter={() => setSelectedIndex(idx)}
                       className={cn(
-                        "w-full flex items-center justify-between p-4 rounded-2xl transition-all group relative",
-                        selectedIndex === idx ? "bg-white/10 border-white/20 shadow-xl" : "hover:bg-white/5 border-transparent"
+                        "w-full flex items-center justify-between p-3.5 rounded-2xl transition-all group relative border",
+                        selectedIndex === idx ? "bg-gray-900 text-white border-transparent shadow-xl" : "hover:bg-gray-50 border-transparent"
                       )}
                     >
                       <div className="flex items-center gap-4">
                         <div className={cn(
                             "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                            selectedIndex === idx ? "bg-pink-500/20 text-pink-400" : "bg-white/5 text-pink-100/20"
+                            selectedIndex === idx ? "bg-white/10 text-white" : "bg-gray-100 text-gray-400"
                         )}>
                            <Box size={20} />
                         </div>
                         <div className="text-left">
                           <p className={cn(
-                            "text-xs font-black uppercase tracking-tight",
-                            selectedIndex === idx ? "text-white text-glow" : "text-white/60"
+                            "text-xs font-bold uppercase tracking-tighter",
+                            selectedIndex === idx ? "text-white" : "text-gray-900"
                           )}>{e.title}</p>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-pink-100/10 mt-1">NODE::{e.type} • {e.id}</p>
+                          <p className={cn(
+                            "text-[9px] font-black uppercase tracking-widest mt-0.5",
+                            selectedIndex === idx ? "text-gray-400" : "text-gray-300"
+                          )}>{e.type} • {e.id.substring(0, 8)}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-3">
                          {e.isAiGenerated && (
-                            <span className="px-2 py-0.5 bg-pink-500/10 border border-pink-500/20 rounded-md text-[8px] font-black uppercase text-pink-400 tracking-widest">AI</span>
+                            <span className={cn(
+                                "px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border",
+                                selectedIndex === idx ? "bg-white/10 border-white/20 text-white" : "bg-gray-100 border-gray-100 text-gray-500"
+                            )}>AI</span>
                          )}
                          <div className={cn(
                             "p-2 rounded-lg transition-opacity",
-                            selectedIndex === idx ? "opacity-100 bg-white text-pink-600" : "opacity-0"
+                            selectedIndex === idx ? "opacity-100 bg-brand-orange text-white" : "opacity-0"
                          )}>
                             <Sparkles size={12} />
                          </div>
@@ -158,27 +164,27 @@ export default function GlobalSearch() {
                   ))}
                   
                   {query.trim() !== '' && filteredEntities.length === 0 && (
-                     <div className="p-12 text-center opacity-20">
-                        <X size={32} className="mx-auto mb-4" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em]">No matching signals found</p>
+                     <div className="p-12 text-center text-gray-300">
+                        <X size={32} className="mx-auto mb-4 opacity-50" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em]">Signal Lost: No Matches found</p>
                      </div>
                   )}
                 </div>
               </div>
 
-              <div className="p-4 bg-black/20 border-t border-white/5 flex items-center justify-between">
+              <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                  <div className="flex gap-4">
                     <div className="flex items-center gap-2">
-                        <div className="px-1.5 py-0.5 bg-white/5 rounded border border-white/10 text-[8px] text-pink-100/40">↑↓</div>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-pink-100/10">Navigate</span>
+                        <div className="px-1.5 py-0.5 bg-white rounded border border-gray-200 text-[8px] font-bold text-gray-400">↑↓</div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Navigate</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="px-1.5 py-0.5 bg-white/5 rounded border border-white/10 text-[8px] text-pink-100/40">ENTER</div>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-pink-100/10">Focus</span>
+                        <div className="px-1.5 py-0.5 bg-white rounded border border-gray-200 text-[8px] font-bold text-gray-400">ENTER</div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Focus</span>
                     </div>
                  </div>
-                 <div className="text-[8px] font-black uppercase tracking-widest text-pink-100/20">
-                    WhisperX Search Engine_v1.0
+                 <div className="text-[8px] font-black uppercase tracking-widest text-gray-400">
+                    Spatial Discovery Engine 2.0
                  </div>
               </div>
             </motion.div>

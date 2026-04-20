@@ -104,7 +104,11 @@ export default function Gallery() {
                                     y: 100 + idx * 20,
                                     width: 350,
                                     height: 400,
-                                    isAiGenerated: false
+                                    isAiGenerated: false,
+                                    ports: [
+                                        { id: 'in', label: 'In', type: 'input' },
+                                        { id: 'out', label: 'Out', type: 'output', value: { status: 'deployed', sync: true } }
+                                    ]
                                 })}
                                 className="flex-1 glass-button py-3 rounded-xl flex items-center justify-center gap-2 group/btn"
                             >

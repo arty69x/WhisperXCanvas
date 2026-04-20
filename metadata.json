@@ -1,6 +1,6 @@
 {
-  "name": "WhisperXWorkspace",
-  "description": "High-fidelity Workspace-first engine for unified data visualization, agentic orchestration, and immersive exploration.",
+  "name": "WhisperX Studio",
+  "description": "The Ultimate Spatial Orchestration Engine. Full-stack, AI-powered workspace for hyper-visual data explorartion and agentic automation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["canvas", "ai", "visualization", "agentic"]
 }

@@ -18,7 +18,9 @@ import {
   Wallet,
   Settings,
   HelpCircle,
-  Command
+  Command,
+  Play,
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/lib/store';
@@ -44,92 +46,111 @@ const navItems = [
 ];
 
 export default function Sidebar({ activeModule, onModuleChange }: { activeModule: string, onModuleChange: (id: string) => void }) {
-  const user = useAppStore((state) => state.user);
+  const { user, entities, updateEntity } = useAppStore();
+
+  const runSimulation = () => {
+    // Basic simulation logic: cycle through nodes and set them to running
+    entities.forEach((entity, index) => {
+        setTimeout(() => {
+            updateEntity(entity.id, { executionStatus: 'running' });
+            setTimeout(() => {
+                updateEntity(entity.id, { executionStatus: 'success' });
+            }, 3000);
+        }, index * 1000);
+    });
+  };
 
   return (
-    <div className="w-16 md:w-64 h-full glass-panel border-r border-white/10 flex flex-col transition-all duration-800 overflow-hidden z-50 shadow-[20px_0_60px_rgba(255,126,179,0.05)] md:ml-4 md:my-4 md:rounded-[2.5rem] md:h-[calc(100vh-2rem)]">
+    <div className="w-16 md:w-64 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-800 overflow-hidden z-20 shadow-sm md:ml-4 md:my-4 md:rounded-3xl md:h-[calc(100vh-2rem)]">
       {/* Brand Section */}
       <div className="p-8 flex items-center gap-4 relative">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-pink-500/[0.05] to-transparent pointer-events-none" />
-        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(255,126,179,0.5)] group cursor-pointer hover:rotate-12 transition-transform duration-500">
-          <Command size={24} className="text-pink-600 group-hover:scale-110 transition-transform" />
+        <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center shrink-0 group cursor-pointer hover:rotate-12 transition-transform duration-500 shadow-xl shadow-black/10">
+          <Command size={24} className="text-white group-hover:scale-110 transition-transform" />
         </div>
         <div className="hidden md:block overflow-hidden">
-          <h1 className="font-black text-lg tracking-tighter uppercase italic leading-none text-glow text-pink-50">WhisperX</h1>
-          <p className="text-[10px] font-black text-pink-200/20 uppercase tracking-[0.3em] mt-1">Workspace_v1.0</p>
+          <h1 className="font-black text-lg tracking-tighter uppercase leading-none text-gray-900">WhisperX</h1>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-1">Studio_v2.0</p>
         </div>
       </div>
       
-      {/* Agentic Status */}
+      {/* Engine Status */}
       <div className="px-8 pb-4 hidden md:block">
-        <div className="p-3 bg-pink-500/5 border border-pink-500/10 rounded-xl flex items-center justify-between">
+        <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between">
            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-pink-500 rounded-full shadow-[0_0_10px_#ff7eb3] animate-pulse" />
-              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-pink-300">Agentic_Link Status</span>
+              <div className="w-1.5 h-1.5 bg-brand-green rounded-full shadow-[0_0_10px_#22c55e] animate-pulse" />
+              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600">Engine_Status</span>
            </div>
-           <span className="text-[8px] font-black text-pink-200/20 uppercase tracking-widest">Active</span>
+           <span className="text-[8px] font-black text-brand-blue uppercase tracking-widest">Optimal</span>
         </div>
       </div>
       
       {/* Nav List */}
-      <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide px-4 space-y-2">
-        <div className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.4em] text-pink-100/10 hidden md:block border-b border-white/5 mb-4">Core_Systems</div>
+      <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide px-4 space-y-1">
+        <div className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.4em] text-gray-300 hidden md:block border-b border-gray-50 mb-4">Navigation</div>
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onModuleChange(item.id)}
             className={cn(
-              "w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-[11px] transition-all group relative border",
+              "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-[11px] transition-all group relative border",
               activeModule === item.id 
-                ? "bg-white/[0.12] text-white border-pink-300/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-xl" 
-                : "text-pink-100/30 border-transparent hover:text-white/60 hover:bg-white/[0.05]"
+                ? "bg-gray-900 text-white border-transparent shadow-lg shadow-gray-200" 
+                : "text-gray-500 border-transparent hover:text-gray-900 hover:bg-gray-50"
             )}
           >
             {activeModule === item.id && (
               <motion.div 
                 layoutId="active-indicator"
-                className="absolute left-0 w-1 h-5 bg-pink-400 rounded-full shadow-[0_0_15px_#ff7eb3]" 
+                className="absolute left-0 w-1.5 h-6 bg-brand-orange rounded-full" 
               />
             )}
-            <item.icon size={20} className={cn(
+            <item.icon size={18} className={cn(
               "shrink-0 transition-all duration-300",
-              activeModule === item.id ? "text-pink-300 scale-110 drop-shadow-[0_0_12px_#ff7eb3]" : "text-pink-100/30 group-hover:text-pink-100/60 group-hover:scale-110"
+              activeModule === item.id ? "text-white" : "text-gray-400 group-hover:text-gray-600 group-hover:scale-110"
             )} />
             <span className={cn(
-              "hidden md:block font-black uppercase tracking-[0.15em] transition-all",
-              activeModule === item.id ? "text-white" : "text-pink-100/30 group-hover:text-pink-100/60"
+              "hidden md:block font-bold uppercase tracking-wider transition-all",
+              activeModule === item.id ? "text-white" : "text-gray-500 group-hover:text-gray-900"
             )}>
-              {item.id === activeModule ? (
-                <span className="text-glow">{item.label}</span>
-              ) : item.label}
+              {item.label}
             </span>
           </button>
         ))}
       </nav>
       
       {/* Footer Section */}
-      <div className="p-6 space-y-6 relative">
-        <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-pink-500/[0.05] to-transparent pointer-events-none" />
-        
-        <div className="space-y-2 hidden md:block border-t border-white/5 pt-6">
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-pink-100/20 hover:text-white transition-all hover:bg-white/[0.05] rounded-xl">
-            <Settings size={14} className="opacity-50" /> System_Config
+      <div className="p-6 space-y-6">
+        <div className="space-y-4 hidden md:block border-t border-gray-50 pt-6">
+          <button 
+            onClick={runSimulation}
+            className="w-full p-4 rounded-xl flex items-center justify-center gap-3 bg-brand-blue text-white group hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
+          >
+            <Activity size={14} className="group-hover:scale-125 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Diagnostics</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-pink-100/20 hover:text-white transition-all hover:bg-white/[0.05] rounded-xl">
-            <HelpCircle size={14} className="opacity-50" /> Documentation
-          </button>
+          
+          <div className="space-y-0.5">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-all hover:bg-gray-50 rounded-lg">
+              <Settings size={14} className="opacity-70" /> Configuration
+            </button>
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-all hover:bg-gray-50 rounded-lg">
+              <HelpCircle size={14} className="opacity-70" /> Resources
+            </button>
+          </div>
         </div>
 
         {/* User Card */}
-        <div className="p-4 rounded-[1.5rem] glass-card border-white/10 relative group cursor-pointer active:scale-95 transition-all overflow-hidden bg-white/5">
-          <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex items-center gap-4 relative z-10">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-600 to-purple-600 border border-white/20 shadow-xl shrink-0 flex items-center justify-center text-white/80 font-black italic">
+        <div className="p-3 rounded-2xl border border-gray-100 relative group cursor-pointer active:scale-95 transition-all overflow-hidden bg-gray-50/50 hover:bg-white hover:border-gray-200">
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 shadow-xl shrink-0 flex items-center justify-center text-white font-black italic">
                {user.name.charAt(0)}
             </div>
-            <div className="hidden md:block overflow-hidden text-left">
-              <p className="text-[11px] font-black uppercase tracking-widest truncate text-glow text-pink-50">{user.name}</p>
-              <p className="text-[9px] font-black text-pink-100/30 uppercase tracking-tighter">{user.role}</p>
+            <div className="hidden md:block overflow-hidden text-left flex-1">
+              <p className="text-[11px] font-bold uppercase tracking-wide truncate text-gray-900">{user.name}</p>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 bg-brand-green rounded-full" />
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">{user.role}</p>
+              </div>
             </div>
           </div>
         </div>

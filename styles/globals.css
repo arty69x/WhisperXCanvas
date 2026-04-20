@@ -1,114 +1,80 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #ff7eb3;
-  --color-brand-secondary: #ff758c;
-  --color-brand-accent: #ff7eb3;
-  --color-bg-dark: #0f050a;
-  --color-bg-panel: rgba(255, 255, 255, 0.08);
-  --color-border-subtle: rgba(255, 255, 255, 0.15);
+  --color-brand-red: #EF4444;
+  --color-brand-orange: #F97316;
+  --color-brand-yellow: #FACC15;
+  --color-brand-blue: #2563EB;
+  --color-brand-green: #16A34A;
+  --color-brand-gray: #6B7280;
+  --color-brand-black: #000000;
   
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 @layer utilities {
-  .glass-panel {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    box-shadow: 0 8px 32px 0 rgba(255, 126, 179, 0.12);
+  .tech-panel {
+    @apply bg-white border border-brand-gray/20 shadow-sm;
   }
   
-  .glass-card {
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    @apply transition-all duration-500 hover:bg-white/25 hover:shadow-[0_0_30px_rgba(255,126,179,0.2)];
+  .tech-card {
+    @apply bg-white border border-brand-gray/20 transition-all duration-300;
+    @apply hover:border-brand-black/20 hover:shadow-md;
   }
 
-  .glass-input {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    @apply focus:border-pink-300/50 focus:bg-white/15 transition-all outline-none;
+  .tech-input {
+    @apply bg-brand-gray/5 border border-brand-gray/10 text-brand-black px-4 py-2 rounded-lg outline-none transition-all;
+    @apply focus:ring-1 focus:ring-brand-blue/30 focus:border-brand-blue/50;
   }
 
-  .glass-button {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    @apply hover:bg-white/20 hover:border-pink-300/30 transition-all active:scale-95;
+  .tech-button {
+    @apply bg-white border border-brand-gray/20 px-4 py-2 rounded-lg transition-all text-brand-black font-semibold;
+    @apply hover:bg-brand-gray/5 active:scale-95 disabled:opacity-50;
   }
 
-  .text-glow {
-    text-shadow: 0 0 15px rgba(255, 126, 179, 0.6);
-  }
-
-  .accent-glow-pink {
-    box-shadow: 0 0 30px rgba(255, 126, 179, 0.4);
-  }
-
-  .flower-radial-bg {
-    background: radial-gradient(circle at center, rgba(255, 126, 179, 0.15) 0%, transparent 70%);
-  }
-
-  .visible-grid {
-    background-size: 60px 60px;
+  .bg-grid {
+    background-size: 40px 40px;
     background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   }
 
   .hardware-stats {
-    @apply font-mono text-[9px] tracking-[0.2em] uppercase text-pink-200/40;
+    @apply font-mono text-[10px] tracking-wider uppercase text-brand-gray;
   }
 
-  .floating-petal {
-    animation: float 10s ease-in-out infinite;
+  .animate-dash-flow {
+    @apply stroke-dash- flow;
+  }
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -20;
   }
 }
 
 body {
-  @apply bg-[#0f050a] text-pink-50 antialiased selection:bg-pink-500/30 font-sans overflow-x-hidden;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(255, 126, 179, 0.1) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+  @apply bg-white text-black antialiased selection:bg-brand-blue/10 font-sans overflow-x-hidden;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-pink-500/20 rounded-full hover:bg-pink-500/40 transition-colors;
+  @apply bg-brand-gray/30 rounded-full hover:bg-brand-gray/50 transition-colors;
 }
 
-@keyframes dash {
-  to {
-    stroke-dashoffset: -12;
-  }
-}
-
-.animate-dash-flow {
-  animation: dash 1s linear infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
-  50% { transform: translateY(-20px) rotate(10deg); opacity: 1; }
-}
-
-@keyframes drift {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  100% { transform: translate(100vw, 100vh) rotate(360deg); }
-}
-
-.animate-petal-drift {
-  animation: drift linear infinite;
+.markdown-body {
+  @apply prose prose-slate max-w-none text-brand-black;
+  @apply prose-headings:text-brand-black prose-headings:font-black prose-headings:tracking-tight;
+  @apply prose-p:text-brand-gray prose-strong:text-brand-black;
+  @apply prose-code:bg-brand-gray/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none;
 }
